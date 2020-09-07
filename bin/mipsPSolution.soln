@@ -1,0 +1,9 @@
+; ParsingTime
+; NrActions 4
+; MakeSpan 4
+; MetricValue 0.00
+; PlaningTechique best-first
+0: (GOTOLL ) [1]
+1: (PRESENTA ) [1]
+2: (TAKEHIGHWAY ) [1]
+3: (GOHIGHWAYHOSPITAL ) [1]

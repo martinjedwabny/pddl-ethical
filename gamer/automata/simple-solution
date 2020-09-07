@@ -1,0 +1,9 @@
+; NrActions 
+; MakeSpan 
+; MetricValue 0
+; PlanningTechnique symbolic branch-and-bound net-benefit search 
+
+0: (gotoll)
+1: (presenta)
+2: (takehighway)
+3: (gohighwayhospital)

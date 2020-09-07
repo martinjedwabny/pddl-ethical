@@ -1,0 +1,4 @@
+#!/bin/sh -x
+
+cp -f `dirname $0`/scanner.$1.h scanner.h
+cp -f `dirname $0`/scanner.$1.cc scanner.cc

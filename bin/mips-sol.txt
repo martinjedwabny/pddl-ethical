@@ -1,0 +1,8 @@
+; NrActions 4
+; MakeSpan 4
+; MetricValue 0.00
+; PlaningTechnique External Branch-and-Bound
+0: (GOTOLL )
+1: (PRESENTA )
+2: (TAKEHIGHWAY )
+3: (GOHIGHWAYHOSPITAL )

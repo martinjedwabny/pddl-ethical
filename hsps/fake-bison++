@@ -1,0 +1,4 @@
+#!/bin/sh -x
+
+cp -f `dirname $0`/grammar.$1.h grammar.h
+cp -f `dirname $0`/grammar.$1.cc grammar.cc

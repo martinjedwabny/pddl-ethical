@@ -1,0 +1,61 @@
+
+# Define compiler/linker:
+CC     = gcc
+CCC    = g++
+CCDEP  = $(CCC) -MM
+LINK   = g++
+
+# Define bison++ and flex++.
+# NOTE: These are NOT the standard GNU programs, but a C++ adaption.
+# Last I checked, they were available from
+# ftp://ftp.tu-darmstadt.de/pub/programming/languages/C++/tools/flex++bison++/
+# BISON  = bison++
+# FLEX   = flex++
+
+# where to find GNU Flex (currently used only by mkkm)
+GFLEX  = /usr/bin/flex
+
+# If you can not find/compile bison++/flex++, try using the "fake" programs
+# as shown below. These are simple scripts that just copy pregenerated files.
+# Replace <PLATFORM> by one of 'cygwin', 'linux' or 'solaris' (only the
+# 'linux' option is currently working).
+BISON  = locals/fake-bison++ <PLATFORM>
+FLEX   = locals/fake-flex++ <PLATFORM>
+
+# Define compiler/linker flags:
+DEBUG = -g
+OPTIMIZE = -O2
+PROFILE = # -pg
+
+CFLAGS = $(DEBUG) $(OPTIMIZE) $(PROFILE) -I.
+LFLAGS = $(DEBUG) $(OPTIMIZE) $(PROFILE) -L.
+
+# Libraries to be linked.
+# The math lib is needed if NTYPE_FLOAT is used (see config.h).
+# The malloc lib may be needed if RSS_FROM_MALLINFO is used (see config.h).
+LLIBS  = # -lm -lmalloc
+
+# Additional flags and libs for sasplan - only required to compile hspIAO
+SASPLAN_DIR = ../../sasplan
+SASPLAN_CFLAGS = -I$(SASPLAN_DIR) -I../../LEDA-4.2/incl
+SASPLAN_LFLAGS = -L../../LEDA-4.2
+SASPLAN_LLIBS  = -lG -lL -lstdc++ -lm
+
+# Additional flags and libs for libPG - only required to compile pddl3sim
+LIBPG_DIR = /home/path/pkg/libpg
+LIBPG_CFLAGS = -I$(LIBPG_DIR)
+LIBPG_LFLAGS = -L$(LIBPG_DIR)
+LIBPG_LLIBS = -lpg
+
+# Additional flags and libs for BuDDy - only required to compile SPP
+BUDDY_CFLAGS =
+BUDDY_LFLAGS =
+BUDDY_LLIBS = -lbdd
+
+# Additional flags and libs for Expat - only required to compile MOST
+EXPAT_CFLAGS =
+EXPAT_LFLAGS =
+EXPAT_LLIBS = -lexpat
+
+# Extension for executables (set to empty for all but cygwin).
+EXEEXT =

@@ -1,0 +1,12 @@
+MIPS:
+
+./mips domain.pddl p01.pddl mips-sol.txt
+
+HSP^P:
+
+./hsp_p ../domain.pddl ../p01.pddl -ipc > hsp-sol.txt
+
+
+GAMER:
+
+./gamer ../domain.pddl ../p01.pddl

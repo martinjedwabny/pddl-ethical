@@ -1,0 +1,9 @@
+; NrActions 
+; MakeSpan 
+; MetricValue 0
+; PlanningTechnique symbolic shortest path search 
+
+0: (gotoll) [0]
+0: (presenta) [0]
+0: (takehighway) [0]
+0: (gohighwayhospital) [0]

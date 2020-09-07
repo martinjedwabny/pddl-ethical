@@ -1,0 +1,52 @@
+GAMER-NET-BEN, (c) Stefan Edelkamp, University of Dortmund
+
+Competition version 2008
+
+GAMER-NET-BEN is licensed under the GNU General Public License. Read the file COPYING for details.
+
+
+Includes:
+
+- Cost-optimal search for linear metrics with integer coefficients
+
+---
+
+Bidirectional BFS in propositional domains and simple preferences
+
+Grounding input 
+
+./ground <domain-file> <problem-file>
+
+writes domain.pddl problem.pddl and problem.psas
+
+Calling the solver 
+
+./bdd-solver
+
+writes mips-solution and simple-solution 
+
+./bdd-solver -? 
+
+provides some command line options of the solver
+
+---
+
+Generic call, also for qualitative preferences
+
+./compile <domain.pddl> <problem.pddl>
+
+Known issues:
+
+- Growth of BDD-sizes to be adapted to exploit different amounts of 
+main memory, default for 16 GB exploration
+
+ INITIAL_NODES 32000000
+ MAX_INCREASE  128000000
+
+- implementation of temporal modalities "hold", "within", etc. commented 
+
+- Growth of BDD-sizes beyond 2GB RAM only possible on 64-bit machines
+
+
+
+

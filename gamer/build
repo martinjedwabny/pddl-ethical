@@ -1,0 +1,6 @@
+#! /bin/bash
+export MAIN_TOPDIR=$(pwd)
+cd ground
+export GROUND_TOPDIR=$(pwd)
+cd ..
+make
