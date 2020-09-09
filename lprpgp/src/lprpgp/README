@@ -1,0 +1,51 @@
+LPRPG - Beta Release 1
+----------------------
+
+This directory contains the source release of LPRPG - LPRPG, as in the 2008 ICAPS paper plus a few bug fixes.
+
+For convenience, a copy of lpsolve compiled for x86 is provided along with the necesary headers.  The sources can be obtained from: 
+
+http://sourceforge.net/projects/lpsolve
+
+Compiling
+---------
+
+To compile, type make.  It is known to build with g++ v4.2.4 on Ubuntu, any compile-time gremlins can likely be ascribed to PDDL parsing.
+
+To run the planner, type:
+
+./lprpg domain.pddl problem.pddl
+
+For details of the extra flags, run ./lprpg with no options.
+
+
+Contact Details
+---------------
+
+Contact details for the authors are available from the Strathclyde Planning Group Website:
+
+http://planning.cis.strath.ac.uk/
+
+In the first instance, for bug reports or technical discussions, contact Andrew Coles.
+
+
+Licence
+-------
+
+i) LPRPG
+
+LPRPG is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+(at your option) any later version.
+
+LPRPG is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+For details of the license, see the file LICENCE in this directory.
+
+ii) lpsolve
+
+lpsolve is distributed under the LGPL, see source website for licence conditions.

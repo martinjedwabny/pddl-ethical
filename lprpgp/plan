@@ -1,0 +1,74 @@
+#!/usr/bin/perl -w
+
+if ((scalar @ARGV) != 3) {
+        print "Usage: plan <domain> <problem> <solution>\n";
+        exit(1);
+}
+
+$dom = shift @ARGV;
+$prob = shift @ARGV;
+$soln = shift @ARGV;
+
+if (!(-e $dom)) {
+        print "Domain file $dom not found\n";
+        exit(1);
+}
+
+if (!(-e $prob)) {
+        print "Problem file $prob not found\n";
+        exit(1);
+}
+
+open IN, "./compile/lprpgp/lprpgp-cplex -c -2 -1 $dom $prob |";
+
+
+$| = 1;
+
+$cutting = 0;
+$solnfile = 1;
+while (<IN>) {
+
+	$consider = 0;
+
+	$cutfrom = index($_, "xxxCUTxxx");
+	if ($cutfrom != -1) {
+		$consider = 1;
+		$_ = substr($_,0,$cutfrom);
+		$cutting = 1;
+	}
+
+	$cutto = index($_,"yyyCUTyyy");
+	if ($cutto != -1) {
+		$cutting = 0;
+	} elsif ($cutting == 0) {
+		$consider = 1;
+	}
+
+	if ($consider == 1) {
+
+		if (m/--- New best/ || m/;;;;/ || m/Initial state is a solution/) {
+                	print "\n\n - Opening plan file $soln.$solnfile\n";
+	                print;
+	                open OUT, "> $soln.$solnfile";
+	                print OUT ";$_";
+	                while (<IN>) {
+	                        if (m/./) {
+	                                print;
+	                                print OUT;
+	                        } else {
+	                                print;
+	                                last;
+	                        }
+	                }
+	                close OUT;
+			++$solnfile;
+	        } else {
+	                print;
+	        }
+
+
+	
+	}
+}
+
+close IN;
