@@ -49,11 +49,30 @@ class Generator:
 
         return text
 
+    
+
+    def format_init(self, pos_elems):
+        text = ""
+        if not (pos_elems):
+            text = "()"
+        else:
+            text = ""
+            for pos in pos_elems:
+                #TODO : awful there
+                # text += " ("+pos[0]+")"
+                text += " ("
+                for p in pos:
+                    text += " " + p
+                text += ")"
+                
+        return text
+
     def generate_preference_goals(self, parser):
         pref_list = []
+        # print(parser.ethical_rules)
         for rule in parser.ethical_rules:
             #TODO there is something wrong here: what should be the fluent to add? Precondition can be empty and name does not correspond
-            # if rule.ethical_type[0] == "obligation":
+            # if rule.ethical_type[0] == "+":
             #     pref_list.append(["preference", "p_" + rule.name, self.format_conjunction(rule.name, [])])
             # else:
             #     pref_list.append(["preference", "p_" + rule.name, self.format_conjunction([],rule.name)])
@@ -63,7 +82,7 @@ class Generator:
                 name = rule.preconditions
             else:
                 name = [[rule.name]]
-            if rule.ethical_type[0] == "obligation":
+            if rule.ethical_type[0] == "+":
                 pref_list.append(["preference", "p_" + rule.name, self.format_conjunction(name, [])])
             else:
                 pref_list.append(["preference", "p_" + rule.name, self.format_conjunction([],name)])
@@ -77,6 +96,8 @@ class Generator:
         text += "(:requirements"
         if ":conditional-effects" not in parser.requirements:
             text += " " + ":conditional-effects" 
+        if ":preferences" not in parser.requirements:
+            text += " " + ":preferences" 
         if ":ethical-rules" in parser.requirements:
             parser.requirements.remove(":ethical-rules")
         for req in parser.requirements:
@@ -118,8 +139,8 @@ class Generator:
 
     def generate_problem_file(self, parser, generator):
         text = "(define (problem "+parser.problem_name+"_GEN)\n"
-        text += "(:domain " + parser.domain_name + ")\n"
-        text += "(:init" + generator.format_conjunction(parser.state, []) + ")\n"
+        text += "(:domain " + parser.domain_name+"_GEN )\n"
+        text += "(:init" + generator.format_init(parser.state) + ")\n"
         text += "(:goal "
         pref_goals = self.generate_preference_goals(parser)
         pos_goals = []
@@ -127,9 +148,9 @@ class Generator:
         pos_goals.extend(pref_goals)
         # print(pos_goals)
         text += generator.format_conjunction(pos_goals,parser.negative_goals) + ")\n"
-        text += "(:metric maximize (+\n"
+        text += "(:metric minimize (+\n"
         for rule in parser.ethical_rules:
-            text += "(* (is-violated p_" + rule.name + ") -" + rule.rank[0] + ")\n"
+            text += "(* (is-violated p_" + rule.name + ") " + rule.rank[0] + ")\n"
         text += "))\n"
 
         text += ")\n"

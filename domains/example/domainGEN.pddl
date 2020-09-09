@@ -1,5 +1,5 @@
 (define (domain hospital_GEN)
-(:requirements :strips :conditional-effects)
+(:requirements :conditional-effects :strips :preferences :negative-preconditions )
 
 (:predicates
 (athouse)
