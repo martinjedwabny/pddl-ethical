@@ -2,8 +2,8 @@
 
 from PDDL import PDDL_Parser
 
-class Generator:
 
+class Generator:
 
     def find_relevant_rules(self, parser, action):
         rules = []
@@ -19,7 +19,7 @@ class Generator:
         elif len(pos_elems) + len(neg_elems) > 1:
             text = "(and"
             for pos in pos_elems:
-                #TODO : awful there
+                # TODO : awful there
                 # text += " ("+pos[0]+")"
                 text += " ("
                 for p in pos:
@@ -34,7 +34,7 @@ class Generator:
             text += ")"
         else:
             if not pos_elems:
-                #TODO : awful there again
+                # TODO : awful there again
                 # text += "(not("+neg_elems[0][0]+"))"
                 text += " ("
                 for n in neg_elems[0]:
@@ -49,8 +49,6 @@ class Generator:
 
         return text
 
-    
-
     def format_init(self, pos_elems):
         text = ""
         if not (pos_elems):
@@ -58,48 +56,48 @@ class Generator:
         else:
             text = ""
             for pos in pos_elems:
-                #TODO : awful there
+                # TODO : awful there
                 # text += " ("+pos[0]+")"
                 text += " ("
                 for p in pos:
                     text += " " + p
                 text += ")"
-                
+
         return text
 
     def generate_preference_goals(self, parser):
         pref_list = []
         # print(parser.ethical_rules)
         for rule in parser.ethical_rules:
-            #TODO there is something wrong here: what should be the fluent to add? Precondition can be empty and name does not correspond
+            # TODO there is something wrong here: what should be the fluent to add? Precondition can be empty and name does not correspond
             # if rule.ethical_type[0] == "+":
             #     pref_list.append(["preference", "p_" + rule.name, self.format_conjunction(rule.name, [])])
             # else:
             #     pref_list.append(["preference", "p_" + rule.name, self.format_conjunction([],rule.name)])
             name = []
-            #TODO WE NEED NEGATIVE PRECOND FOR ETHICS
+            # TODO WE NEED NEGATIVE PRECOND FOR ETHICS
             if rule.activation[0] == "final":
                 name = rule.preconditions
             else:
                 name = [[rule.name]]
             if rule.ethical_type[0] == "+":
-                pref_list.append(["preference", "p_" + rule.name, self.format_conjunction(name, [])])
+                pref_list.append(
+                    ["preference", "p_" + rule.name, self.format_conjunction(name, [])])
             else:
-                pref_list.append(["preference", "p_" + rule.name, self.format_conjunction([],name)])
+                pref_list.append(
+                    ["preference", "p_" + rule.name, self.format_conjunction([], name)])
         return pref_list
-
-
 
     def generate_domain_file(self, parser, generator):
         text = "(define (domain "+parser.domain_name+"_GEN)\n"
 
         text += "(:requirements"
         if ":conditional-effects" not in parser.requirements:
-            text += " " + ":conditional-effects" 
+            text += " " + ":conditional-effects"
         if ":preferences" not in parser.requirements:
-            text += " " + ":preferences" 
-        if ":ethical-rules" in parser.requirements:
-            parser.requirements.remove(":ethical-rules")
+            text += " " + ":preferences"
+        if ":ethical" in parser.requirements:
+            parser.requirements.remove(":ethical")
         for req in parser.requirements:
             text += " " + req
 
@@ -108,7 +106,7 @@ class Generator:
             text += "("+pred+")\n"
 
         for rule in parser.ethical_rules:
-            #Warning: when the action is final, nothing is added
+            # Warning: when the action is final, nothing is added
             if rule.activation[0] != "final":
                 text += "("+rule.name+")\n"
 
@@ -116,11 +114,12 @@ class Generator:
 
         for act in parser.actions:
             text += "(:action "+act.name+"\n:parameters "
-            #TODO not sure it works as intended for parameters, but oh well...
-            text += generator.format_conjunction(act.parameters,[])
+            # TODO not sure it works as intended for parameters, but oh well...
+            text += generator.format_conjunction(act.parameters, [])
 
             text += "\n:precondition "
-            text += generator.format_conjunction(act.positive_preconditions, act.negative_preconditions)
+            text += generator.format_conjunction(
+                act.positive_preconditions, act.negative_preconditions)
 
             text += "\n:effect "
             rules = generator.find_relevant_rules(parser, act.name)
@@ -128,9 +127,11 @@ class Generator:
                 if not rule.preconditions:
                     act.add_effects.extend([[rule.name]])
                 else:
-                    act.add_effects.extend([["when"+generator.format_conjunction(rule.preconditions,[]) + generator.format_conjunction( [[rule.name]],[])]])
+                    act.add_effects.extend([["when"+generator.format_conjunction(
+                        rule.preconditions, []) + generator.format_conjunction([[rule.name]], [])]])
 
-            text += generator.format_conjunction(act.add_effects, act.del_effects)
+            text += generator.format_conjunction(
+                act.add_effects, act.del_effects)
 
             text += "\n)\n"
 
@@ -147,10 +148,12 @@ class Generator:
         pos_goals.extend(parser.positive_goals)
         pos_goals.extend(pref_goals)
         # print(pos_goals)
-        text += generator.format_conjunction(pos_goals,parser.negative_goals) + ")\n"
+        text += generator.format_conjunction(pos_goals,
+                                             parser.negative_goals) + ")\n"
         text += "(:metric minimize (+\n"
         for rule in parser.ethical_rules:
-            text += "(* (is-violated p_" + rule.name + ") " + rule.rank[0] + ")\n"
+            text += "(* (is-violated p_" + rule.name + ") " + \
+                rule.rank[0] + ")\n"
         text += "))\n"
 
         text += ")\n"
@@ -164,8 +167,10 @@ if __name__ == '__main__':
     domain = sys.argv[1]
     problem = sys.argv[2]
 
-    new_domain = os.path.dirname(os.path.realpath(domain)) + "/" + os.path.basename(domain).split(".")[0] + "GEN.pddl"
-    new_problem = os.path.dirname(os.path.realpath(problem)) + "/" + os.path.basename(problem).split(".")[0] + "GEN.pddl"
+    new_domain = os.path.dirname(os.path.realpath(
+        domain)) + "/" + os.path.basename(domain).split(".")[0] + "GEN.pddl"
+    new_problem = os.path.dirname(os.path.realpath(
+        problem)) + "/" + os.path.basename(problem).split(".")[0] + "GEN.pddl"
 
     gen = Generator()
     parser = PDDL_Parser()

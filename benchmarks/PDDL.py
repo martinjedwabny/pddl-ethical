@@ -7,16 +7,18 @@ from action import Action
 from ethical_rule import Ethical_rule
 import random
 
+
 class PDDL_Parser:
 
-    SUPPORTED_REQUIREMENTS = [':strips', ':negative-preconditions', ':typing', ":conditional-effects", ':ethical-rules']
+    SUPPORTED_REQUIREMENTS = [
+        ':strips', ':negative-preconditions', ':equality', ':typing', ":conditional-effects", ':ethical']
 
     # ------------------------------------------
     # Tokens
     # ------------------------------------------
 
     def scan_tokens(self, filename):
-        with open(filename,'r') as f:
+        with open(filename, 'r') as f:
             # Remove single line comments
             str = re.sub(r';.*$', '', f.read(), flags=re.MULTILINE).lower()
         # Tokenize
@@ -41,9 +43,9 @@ class PDDL_Parser:
             raise Exception('Malformed expression')
         return list[0]
 
-    #-----------------------------------------------
+    # -----------------------------------------------
     # Parse domain
-    #-----------------------------------------------
+    # -----------------------------------------------
 
     def parse_domain(self, domain_filename, n_rules):
         tokens = self.scan_tokens(domain_filename)
@@ -54,15 +56,17 @@ class PDDL_Parser:
             self.actions = []
             self.ethical_rules = []
             self.predicates = {}
+            self.constants = {}
             while tokens:
                 group = tokens.pop(0)
                 t = group.pop(0)
-                if   t == 'domain':
+                if t == 'domain':
                     self.domain_name = group[0]
                 elif t == ':requirements':
                     for req in group:
                         if not req in self.SUPPORTED_REQUIREMENTS:
-                            raise Exception('Requirement ' + req + ' not supported')
+                            raise Exception('Requirement ' +
+                                            req + ' not supported')
                     self.requirements = group
                 elif t == ':predicates':
                     self.parse_predicates(group)
@@ -72,32 +76,50 @@ class PDDL_Parser:
                     self.parse_action(group)
                 elif t == ':ethical-rule':
                     self.parse_ethical_rule(group)
-                else: print(str(t) + ' is not recognized in domain')
-            for i in range(0,int(n_rules)):
-                self.add_random_ethical_rule('r'+str(i),i,int(n_rules))
+                elif t == ':constants':
+                    constant_list = []
+                    while group:
+                        if group[0] == '-':
+                            group.pop(0)
+                            self.constants[group.pop(0)] = constant_list
+                            constant_list = []
+                        else:
+                            constant_list.append(group.pop(0))
+                    if constant_list:
+                        if not 'object' in self.constants:
+                            self.constants['object'] = []
+                        self.constants['object'] += constant_list
+                else:
+                    print(str(t) + ' is not recognized in domain')
+            for i in range(0, int(n_rules)):
+                self.add_random_ethical_rule('r'+str(i), i, int(n_rules))
         else:
-            raise Exception('File ' + domain_filename + ' does not match domain pattern')
+            raise Exception('File ' + domain_filename +
+                            ' does not match domain pattern')
 
-    def add_random_ethical_rule(self, name,r,n):
+    def add_random_ethical_rule(self, name, r, n):
         random.seed(r+2)
         num1 = random.randint(0, 1)
         num3 = r > (n / 2)
         num4 = random.randint(1, 5)
         ethical_type = ['+'] if num1 == 0 else ['-']
-        positive_preconditions = [] if num3 == 1 else [random.sample(self.predicates.keys(), 1)]
+        positive_preconditions = [] if num3 == 1 else [
+            random.sample(self.predicates.keys(), 1)]
         negative_preconditions = []
-        activation = ['final'] if num3 == 0 else [random.sample(self.actions, 1)[0].name]
+        activation = ['final'] if num3 == 0 else [
+            random.sample(self.actions, 1)[0].name]
         rank = [str(num4)]
         # print(name)
         # print(ethical_type)
         # print(positive_preconditions)
         # print(activation)
         # print(rank)
-        self.ethical_rules.append(Ethical_rule(name, ethical_type, positive_preconditions, activation, rank))
+        self.ethical_rules.append(Ethical_rule(
+            name, ethical_type, positive_preconditions, activation, rank))
 
-    #-----------------------------------------------
+    # -----------------------------------------------
     # Parse predicates
-    #-----------------------------------------------
+    # -----------------------------------------------
 
     def parse_predicates(self, group):
         for pred in group:
@@ -120,9 +142,9 @@ class PDDL_Parser:
                 arguments[untyped_variables.pop(0)] = 'object'
             self.predicates[predicate_name] = arguments
 
-    #-----------------------------------------------
+    # -----------------------------------------------
     # Parse action
-    #-----------------------------------------------
+    # -----------------------------------------------
 
     def parse_action(self, group):
         name = group.pop(0)
@@ -148,30 +170,35 @@ class PDDL_Parser:
                     t = p.pop(0)
                     if t == '-':
                         if not untyped_parameters:
-                            raise Exception('Unexpected hyphen in ' + name + ' parameters')
+                            raise Exception(
+                                'Unexpected hyphen in ' + name + ' parameters')
                         ptype = p.pop(0)
                         while untyped_parameters:
-                            parameters.append([untyped_parameters.pop(0), ptype])
+                            parameters.append(
+                                [untyped_parameters.pop(0), ptype])
                     else:
                         untyped_parameters.append(t)
                 while untyped_parameters:
                     parameters.append([untyped_parameters.pop(0), 'object'])
             elif t == ':precondition':
-                self.split_predicates(group.pop(0), positive_preconditions, negative_preconditions, name, ' preconditions')
+                self.split_predicates(group.pop(
+                    0), positive_preconditions, negative_preconditions, name, ' preconditions')
             elif t == ':effect':
-                self.split_predicates(group.pop(0), add_effects, del_effects, name, ' effects')
-            else: print(str(t) + ' is not recognized in action')
-        self.actions.append(Action(name, parameters, positive_preconditions, negative_preconditions, add_effects, del_effects))
+                self.split_predicates(
+                    group.pop(0), add_effects, del_effects, name, ' effects')
+            else:
+                print(str(t) + ' is not recognized in action')
+        self.actions.append(Action(name, parameters, positive_preconditions,
+                            negative_preconditions, add_effects, del_effects))
 
-
-    def parse_ethical_rule(self,group):
+    def parse_ethical_rule(self, group):
         name = group.pop(0)
         if not type(name) is str:
             raise Exception('Ethical rule without name definition')
         for eth in self.ethical_rules:
             if eth.name == name:
                 raise Exception('Ethical rule ' + name + ' redefined')
-        
+
         ethical_type = []
         positive_preconditions = []
         negative_preconditions = []
@@ -182,18 +209,21 @@ class PDDL_Parser:
             if t == ':type':
                 ethical_type.extend(group.pop(0))
             elif t == ':precondition':
-                self.split_predicates(group.pop(0), positive_preconditions, negative_preconditions, name, ' preconditions')
+                self.split_predicates(group.pop(
+                    0), positive_preconditions, negative_preconditions, name, ' preconditions')
             elif t == ':activation':
                 activation.append(group.pop(0))
             elif t == ':rank':
                 rank.append(group.pop(0))
-            else: print(str(t) + ' is not recognized in action')
+            else:
+                print(str(t) + ' is not recognized in action')
         # self.ethical_rules.append(Action(name, ethical_type, positive_preconditions, negative_preconditions, activation, rank))
-        self.ethical_rules.append(Ethical_rule(name, ethical_type, positive_preconditions, activation, rank))
+        self.ethical_rules.append(Ethical_rule(
+            name, ethical_type, positive_preconditions, activation, rank))
 
-    #-----------------------------------------------
+    # -----------------------------------------------
     # Parse problem
-    #-----------------------------------------------
+    # -----------------------------------------------
 
     def parse_problem(self, problem_filename):
         tokens = self.scan_tokens(problem_filename)
@@ -206,13 +236,14 @@ class PDDL_Parser:
             while tokens:
                 group = tokens.pop(0)
                 t = group[0]
-                if   t == 'problem':
+                if t == 'problem':
                     self.problem_name = group[-1]
                 elif t == ':domain':
                     if self.domain_name != group[-1]:
-                        raise Exception('Different domain specified in problem file')
+                        raise Exception(
+                            'Different domain specified in problem file')
                 elif t == ':requirements':
-                    pass # Ignore requirements in problem, parse them in the domain
+                    pass  # Ignore requirements in problem, parse them in the domain
                 elif t == ':objects':
                     group.pop(0)
                     object_list = []
@@ -231,14 +262,17 @@ class PDDL_Parser:
                     group.pop(0)
                     self.state = group
                 elif t == ':goal':
-                    self.split_predicates(group[1], self.positive_goals, self.negative_goals, '', 'goals')
-                else: print(str(t) + ' is not recognized in problem')
+                    self.split_predicates(
+                        group[1], self.positive_goals, self.negative_goals, '', 'goals')
+                else:
+                    print(str(t) + ' is not recognized in problem')
         else:
-            raise Exception('File ' + problem_filename + ' does not match problem pattern')
+            raise Exception('File ' + problem_filename +
+                            ' does not match problem pattern')
 
-    #-----------------------------------------------
+    # -----------------------------------------------
     # Split predicates
-    #-----------------------------------------------
+    # -----------------------------------------------
 
     def split_predicates(self, group, pos, neg, name, part):
         if not type(group) is list:
@@ -257,11 +291,13 @@ class PDDL_Parser:
             else:
                 pos.append(predicate)
 
+
 # ==========================================
 # Main
 # ==========================================
 if __name__ == '__main__':
-    import sys, pprint
+    import sys
+    import pprint
     domain = sys.argv[1]
     problem = sys.argv[2]
     parser = PDDL_Parser()
@@ -273,6 +309,7 @@ if __name__ == '__main__':
     parser.parse_domain(domain, 0)
     parser.parse_problem(problem)
     print('Domain name: ' + parser.domain_name)
+    print('Constants: ' + str(parser.constants))
     for act in parser.actions:
         print(act)
     for eth in parser.ethical_rules:
