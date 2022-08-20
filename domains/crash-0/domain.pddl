@@ -2,12 +2,13 @@
     (:requirements :strips :typing :equality :negative-preconditions :conditional-effects :ethical)
 
     (:types
-        car xPos yPos direction - object
+        car xPos yPos direction gravity - object
     )
 
     (:constants
         agent - car
         left straight right - direction
+        low high - gravity
     )
 
     (:predicates

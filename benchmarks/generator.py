@@ -2,6 +2,8 @@
 
 from PDDL import PDDL_Parser
 
+SPACE = '    '
+
 
 class Generator:
 
@@ -90,7 +92,7 @@ class Generator:
                     ["preference", "p_" + rule.name, ""+self.format_conjunction([], name)+" "])
         return pref_list
 
-    def generate_domain_file(self, parser, generator):
+    def generate_domain_file(self, parser):
         text = "(define (domain "+parser.domain_name+"_GEN)\n"
 
         text += "(:requirements"
@@ -103,53 +105,135 @@ class Generator:
         for req in parser.requirements:
             text += " " + req
 
-        text += ")\n\n(:predicates\n"
-        for pred in parser.predicates:
-            text += "("+pred+")\n"
+        text += ")\n\n"
+
+        text += "(:types\n"
+        for k, v in parser.types.items():
+            text += SPACE
+            for vs in v:
+                text += vs+' '
+            text += ' - {} \n'.format(k)
+
+        text += ")\n\n"
+
+        text += "(:constants\n"
+        for k, v in parser.constants.items():
+            text += SPACE
+            for vs in v:
+                text += vs+' '
+            text += ' - {} \n'.format(k)
+
+        text += ")\n\n"
+
+        text += "(:predicates\n"
+        for pred, args in parser.predicates.items():
+            text += SPACE + "("+pred+' '+self.generate_arguments(args)+")\n"
 
         for feature in parser.ethical_features:
-            text += "("+feature.name+' '+str(feature.arguments)+")\n"
+            text += SPACE + "("+feature.name+' ' + \
+                self.generate_arguments(feature.arguments)+")\n"
 
         text += ")\n\n"
 
         for act in parser.actions:
-            text += "(:action "+act.name+"\n:parameters "
-            # TODO not sure it works as intended for parameters, but oh well...
-            text += generator.format_conjunction(act.parameters, [])
+            text += "(:action " + act.name + "\n"
 
-            text += "\n:precondition "
-            text += generator.format_conjunction(
-                act.positive_preconditions, act.negative_preconditions)
+            text += SPACE + ":parameters " + \
+                self.generate_arguments_list_of_pairs(act.parameters) + "\n"
 
-            text += "\n:effect "
-            # rules = generator.find_relevant_rules(parser, act.name)
+            text += SPACE + ":precondition "
+            text += self.generate_formula(act.preconditions) + "\n"
+
+            text += SPACE + ":effect "
+            text += self.generate_formula(act.effects) + "\n"
+            # rules = self.find_relevant_rules(parser, act.name)
             # for rule in rules:
             #     if not rule.preconditions:
             #         act.add_effects.extend([[rule.name]])
             #     else:
-            #         act.add_effects.extend([["when"+generator.format_conjunction(
-            #             rule.preconditions, []) + generator.format_conjunction([[rule.name]], [])]])
-
-            text += generator.format_conjunction(
-                act.add_effects, act.del_effects)
+            #         act.add_effects.extend([["when"+self.format_conjunction(
+            #             rule.preconditions, []) + self.format_conjunction([[rule.name]], [])]])
 
             text += "\n)\n"
 
         text += "\n)\n"
         return text
 
-    def generate_problem_file(self, parser, generator):
+    def generate_formula(self, formula):
+        ans = ''
+        if len(formula) == 0:
+            ans = '()'
+        elif formula[0] == 'not':
+            ans = '(not {})'.format(self.generate_formula(formula[1]))
+        elif formula[0] == 'and' or formula[0] == 'or':
+            ans = '({}'.format(formula.pop(0))+'\n'
+            for sub in formula:
+                ans += self.generate_formula(sub) + '\n'
+            ans += ') \n'
+        elif formula[0] == 'forall' or formula[0] == 'exists':
+            op = formula.pop(0)
+            args = self.generate_arguments_forall(formula.pop(0))
+            sub = self.generate_formula(formula.pop(0))
+            ans += '({} {}\n{})'.format(op, args, sub)
+        elif formula[0] == 'when':
+            op = formula.pop(0)
+            cond = self.generate_formula(formula.pop(0))
+            sub = self.generate_formula(formula.pop(0))
+            ans += '({} {} {})'.format(op, cond, sub)
+        else:
+            pred = formula.pop(0)
+            args = self.generate_arguments_list(formula)
+            ans = '({} {})'.format(pred, args)
+        return ans
+
+    def generate_arguments_forall(self, params):
+        ans = '('
+        while len(params) > 0:
+            p = params.pop(0)
+            if len(params) == 0 or params[0] != '-':
+                ans += p + ' '
+            else:
+                params.pop(0)
+                ptype = params.pop(0)
+                ans += '{} - {} '.format(p, ptype)
+        return ans + ')'
+
+    # list of pairs [obj,type]
+    def generate_arguments_list_of_pairs(self, params):
+        ans = '('
+        while len(params) > 0:
+            param = params.pop(0)
+            p = param.pop(0)
+            ptype = param.pop(0)
+            ans += '{} - {} '.format(p, ptype)
+        return ans + ')'
+
+    # dict <obj,type>
+    def generate_arguments(self, args):
+        ans = ''
+        for k, v in args.items():
+            ans += k + ' - ' + v + ' '
+        return ans
+
+    # list of obj
+    def generate_arguments_list(self, params):
+        ans = ''
+        for p in params:
+            ans += p + ' '
+        return ans
+
+    def generate_problem_file(self, parser):
         text = "(define (problem "+parser.problem_name+"_GEN)\n"
         text += "(:domain " + parser.domain_name+"_GEN )\n"
-        text += "(:init" + generator.format_init(parser.state) + ")\n"
+        text += "(:init" + self.format_init(parser.state) + ")\n"
         text += "(:goal "
         pref_goals = self.generate_preference_goals(parser)
         pos_goals = []
         pos_goals.extend(parser.positive_goals)
         pos_goals.extend(pref_goals)
         # print(pos_goals)
-        text += generator.format_conjunction(pos_goals,
-                                             parser.negative_goals) + ")\n"
+        text += self.format_conjunction(pos_goals,
+                                        parser.negative_goals) + ")\n"
         text += "(:metric minimize (+\n"
         for rule in parser.ethical_rules:
             text += "(* (is-violated p_" + rule.name + ") " + \
@@ -181,7 +265,7 @@ if __name__ == '__main__':
     parser.parse_problem(problem)
 
     with open(new_domain, 'w') as fd:
-        fd.write(gen.generate_domain_file(parser, gen))
+        fd.write(gen.generate_domain_file(parser))
 
     # with open(new_problem, 'w') as fp:
     #     fp.write(gen.generate_problem_file(parser, gen))

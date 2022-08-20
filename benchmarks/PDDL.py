@@ -73,7 +73,7 @@ class PDDL_Parser:
                 elif t == ':predicates':
                     self.predicates = self.parse_predicates(group)
                 elif t == ':types':
-                    self.types = group
+                    self.types = self.parse_constants(group)
                 elif t == ':action':
                     self.parse_action(group)
                 elif t == ':ethical-features':
@@ -320,19 +320,7 @@ class PDDL_Parser:
                 elif t == ':requirements':
                     pass  # Ignore requirements in problem, parse them in the domain
                 elif t == ':objects':
-                    group.pop(0)
-                    object_list = []
-                    while group:
-                        if group[0] == '-':
-                            group.pop(0)
-                            self.objects[group.pop(0)] = object_list
-                            object_list = []
-                        else:
-                            object_list.append(group.pop(0))
-                    if object_list:
-                        if not 'object' in self.objects:
-                            self.objects['object'] = []
-                        self.objects['object'] += object_list
+                    self.objects = self.parse_objects(group)
                 elif t == ':init':
                     self.state = group.pop(0)
                 elif t == ':goal':
@@ -342,6 +330,23 @@ class PDDL_Parser:
         else:
             raise Exception('File ' + problem_filename +
                             ' does not match problem pattern')
+
+    def parse_objects(self, group):
+        ans = {}
+        group.pop(0)
+        object_list = []
+        while group:
+            if group[0] == '-':
+                group.pop(0)
+                ans[group.pop(0)] = object_list
+                object_list = []
+            else:
+                object_list.append(group.pop(0))
+        if object_list:
+            if not 'object' in ans:
+                ans['object'] = []
+            ans['object'] += object_list
+        return ans
 
 
 # ==========================================
