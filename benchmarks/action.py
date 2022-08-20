@@ -3,25 +3,22 @@
 
 import itertools
 
+
 class Action:
 
-    def __init__(self, name, parameters, positive_preconditions, negative_preconditions, add_effects, del_effects):
+    def __init__(self, name, parameters, preconditions, effects):
         self.name = name
         self.parameters = parameters
-        self.positive_preconditions = positive_preconditions
-        self.negative_preconditions = negative_preconditions
-        self.add_effects = add_effects
-        self.del_effects = del_effects
+        self.preconditions = preconditions
+        self.effects = effects
 
     def __str__(self):
         return 'action: ' + self.name + \
-        '\n  parameters: ' + str(self.parameters) + \
-        '\n  positive_preconditions: ' + str(self.positive_preconditions) + \
-        '\n  negative_preconditions: ' + str(self.negative_preconditions) + \
-        '\n  add_effects: ' + str(self.add_effects) + \
-        '\n  del_effects: ' + str(self.del_effects) + '\n'
+            '\n  parameters: ' + str(self.parameters) + \
+            '\n  preconditions: ' + str(self.preconditions) + \
+            '\n  effects: ' + str(self.effects) + '\n'
 
-    def __eq__(self, other): 
+    def __eq__(self, other):
         return self.__dict__ == other.__dict__
 
     def groundify(self, objects):
@@ -34,11 +31,10 @@ class Action:
             type_map.append(objects[type])
             variables.append(var)
         for assignment in itertools.product(*type_map):
-            positive_preconditions = self.replace(self.positive_preconditions, variables, assignment)
-            negative_preconditions = self.replace(self.negative_preconditions, variables, assignment)
-            add_effects = self.replace(self.add_effects, variables, assignment)
-            del_effects = self.replace(self.del_effects, variables, assignment)
-            yield Action(self.name, assignment, positive_preconditions, negative_preconditions, add_effects, del_effects)
+            preconditions = self.replace(
+                self.preconditions, variables, assignment)
+            effects = self.replace(self.effects, variables, assignment)
+            yield Action(self.name, assignment, preconditions, effects)
 
     def replace(self, group, variables, assignment):
         g = []
@@ -51,19 +47,3 @@ class Action:
                 iv += 1
             g.append(pred)
         return g
-
-if __name__ == '__main__':
-    a = Action('move', [['?ag', 'agent'], ['?from', 'pos'], ['?to', 'pos']],
-        [['at', '?ag', '?from'], ['adjacent', '?from', '?to']],
-        [['at', '?ag', '?to']],
-        [['at', '?ag', '?to']],
-        [['at', '?ag', '?from']]
-    )
-    print(a)
-
-    objects = {
-        'agent': ['ana','bob'],
-        'pos': ['p1','p2']
-    }
-    for act in a.groundify(objects):
-        print(act)

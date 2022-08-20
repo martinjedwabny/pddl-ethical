@@ -17,13 +17,14 @@ class Generator:
         if not (pos_elems or neg_elems):
             text = "()"
         elif len(pos_elems) + len(neg_elems) > 1:
+            print(pos_elems)
             text = "(and"
             for pos in pos_elems:
                 # TODO : awful there
                 # text += " ("+pos[0]+")"
                 text += " ("
                 for p in pos:
-                    text += " " + p
+                    text += " " + str(p)
                 text += ")"
             for neg in neg_elems:
                 # text += " (not("+neg[0]+"))"
@@ -106,10 +107,8 @@ class Generator:
         for pred in parser.predicates:
             text += "("+pred+")\n"
 
-        for rule in parser.ethical_rules:
-            # Warning: when the action is final, nothing is added
-            if rule.activation[0] != "final":
-                text += "("+rule.name+")\n"
+        for feature in parser.ethical_features:
+            text += "("+feature.name+' '+str(feature.arguments)+")\n"
 
         text += ")\n\n"
 
@@ -123,13 +122,13 @@ class Generator:
                 act.positive_preconditions, act.negative_preconditions)
 
             text += "\n:effect "
-            rules = generator.find_relevant_rules(parser, act.name)
-            for rule in rules:
-                if not rule.preconditions:
-                    act.add_effects.extend([[rule.name]])
-                else:
-                    act.add_effects.extend([["when"+generator.format_conjunction(
-                        rule.preconditions, []) + generator.format_conjunction([[rule.name]], [])]])
+            # rules = generator.find_relevant_rules(parser, act.name)
+            # for rule in rules:
+            #     if not rule.preconditions:
+            #         act.add_effects.extend([[rule.name]])
+            #     else:
+            #         act.add_effects.extend([["when"+generator.format_conjunction(
+            #             rule.preconditions, []) + generator.format_conjunction([[rule.name]], [])]])
 
             text += generator.format_conjunction(
                 act.add_effects, act.del_effects)
@@ -184,5 +183,5 @@ if __name__ == '__main__':
     with open(new_domain, 'w') as fd:
         fd.write(gen.generate_domain_file(parser, gen))
 
-    with open(new_problem, 'w') as fp:
-        fp.write(gen.generate_problem_file(parser, gen))
+    # with open(new_problem, 'w') as fp:
+    #     fp.write(gen.generate_problem_file(parser, gen))

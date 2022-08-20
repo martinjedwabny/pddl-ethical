@@ -171,24 +171,41 @@ class PDDL_Parser:
             if act.name == name:
                 raise Exception('Action ' + name + ' redefined')
         parameters = []
-        positive_preconditions = []
-        negative_preconditions = []
-        add_effects = []
-        del_effects = []
+        preconditions = []
+        effects = []
         while group:
             t = group.pop(0)
             if t == ':parameters':
                 parameters = self.parse_parameters(group)
             elif t == ':precondition':
-                self.split_predicates(group.pop(
-                    0), positive_preconditions, negative_preconditions, name, ' preconditions')
+                preconditions = group.pop(0)
             elif t == ':effect':
-                self.split_predicates(
-                    group.pop(0), add_effects, del_effects, name, ' effects')
+                effects = group.pop(0)
             else:
                 print(str(t) + ' is not recognized in action')
-        self.actions.append(Action(name, parameters, positive_preconditions,
-                            negative_preconditions, add_effects, del_effects))
+        self.actions.append(Action(name, parameters, preconditions, effects))
+
+    def parse_parameters(self, group):
+        if not type(group) is list:
+            raise Exception('Error with parameters')
+        parameters = []
+        untyped_parameters = []
+        p = group.pop(0)
+        while p:
+            t = p.pop(0)
+            if t == '-':
+                if not untyped_parameters:
+                    raise Exception(
+                        'Unexpected hyphen in parameters')
+                ptype = p.pop(0)
+                while untyped_parameters:
+                    parameters.append(
+                        [untyped_parameters.pop(0), ptype])
+            else:
+                untyped_parameters.append(t)
+        while untyped_parameters:
+            parameters.append([untyped_parameters.pop(0), 'object'])
+        return parameters
 
     # -----------------------------------------------
     # Parse ethical features
@@ -249,28 +266,6 @@ class PDDL_Parser:
     # Parse ethical rules
     # -----------------------------------------------
 
-    def parse_parameters(self, group):
-        if not type(group) is list:
-            raise Exception('Error with parameters')
-        parameters = []
-        untyped_parameters = []
-        p = group.pop(0)
-        while p:
-            t = p.pop(0)
-            if t == '-':
-                if not untyped_parameters:
-                    raise Exception(
-                        'Unexpected hyphen in parameters')
-                ptype = p.pop(0)
-                while untyped_parameters:
-                    parameters.append(
-                        [untyped_parameters.pop(0), ptype])
-            else:
-                untyped_parameters.append(t)
-        while untyped_parameters:
-            parameters.append([untyped_parameters.pop(0), 'object'])
-        return parameters
-
     def parse_ethical_rule(self, group):
         name = group.pop(0)
         if not type(name) is str:
@@ -279,11 +274,9 @@ class PDDL_Parser:
             if rule.name == name:
                 raise Exception('Ethical rule ' + name + ' redefined')
         parameters = []
-        positive_preconditions = []
-        negative_preconditions = []
+        preconditions = []
         activation = []
-        add_features = []
-        del_features = []
+        features = []
         while group:
             t = group.pop(0)
             if t == ':parameters':
@@ -296,15 +289,13 @@ class PDDL_Parser:
                     activation.append(act.pop(0))
                     activation.append(self.parse_parameters(act))
             elif t == ':precondition':
-                self.split_predicates(group.pop(
-                    0), positive_preconditions, negative_preconditions, name, ' preconditions')
+                preconditions = group.pop(0)
             elif t == ':features':
-                self.split_predicates(
-                    group.pop(0), add_features, del_features, name, ' features')
+                features = group.pop(0)
             else:
                 print(str(t) + ' is not recognized in action')
-        self.ethical_rules.append(EthicalRule(name, parameters, positive_preconditions,
-                                              negative_preconditions, activation, add_features, del_features))
+        self.ethical_rules.append(EthicalRule(name, parameters, preconditions,
+                                              activation, features))
 
     # -----------------------------------------------
     # Parse problem
@@ -316,8 +307,7 @@ class PDDL_Parser:
             self.problem_name = 'unknown'
             self.objects = dict()
             self.state = []
-            self.positive_goals = []
-            self.negative_goals = []
+            self.goals = []
             while tokens:
                 group = tokens.pop(0)
                 t = group[0]
@@ -344,37 +334,14 @@ class PDDL_Parser:
                             self.objects['object'] = []
                         self.objects['object'] += object_list
                 elif t == ':init':
-                    group.pop(0)
-                    self.state = group
+                    self.state = group.pop(0)
                 elif t == ':goal':
-                    self.split_predicates(
-                        group[1], self.positive_goals, self.negative_goals, '', 'goals')
+                    self.goals = group.pop(0)
                 else:
                     print(str(t) + ' is not recognized in problem')
         else:
             raise Exception('File ' + problem_filename +
                             ' does not match problem pattern')
-
-    # -----------------------------------------------
-    # Split predicates
-    # -----------------------------------------------
-
-    def split_predicates(self, group, pos, neg, name, part):
-        if not type(group) is list:
-            raise Exception('Error with ' + name + part)
-        if not group:
-            group = []
-        elif group[0] == 'and':
-            group.pop(0)
-        else:
-            group = [group]
-        for predicate in group:
-            if predicate[0] == 'not':
-                if len(predicate) != 2:
-                    raise Exception('Unexpected not in ' + name + part)
-                neg.append(predicate[-1])
-            else:
-                pos.append(predicate)
 
 
 # ==========================================
