@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from functools import reduce
 from PDDL import PDDL_Parser
 
 SPACE = '    '
@@ -64,27 +65,20 @@ class Generator:
         return self.generate_formula(goal.pop(0))
 
     def generate_preference_goals(self, parser):
-        pref_list = []
-        # print(parser.ethical_rules)
-        for rule in parser.ethical_rules:
-            # TODO there is something wrong here: what should be the fluent to add? Precondition can be empty and name does not correspond
-            # if rule.ethical_type[0] == "+":
-            #     pref_list.append(["preference", "p_" + rule.name, self.format_conjunction(rule.name, [])])
-            # else:
-            #     pref_list.append(["preference", "p_" + rule.name, self.format_conjunction([],rule.name)])
-            name = []
-            # TODO WE NEED NEGATIVE PRECOND FOR ETHICS
-            if rule.activation[0] == "final":
-                name = rule.preconditions
+        ans = '(and\n'
+        for er in parser.ethical_ranks:
+            s = self.ground_feature_string(er.feature)
+            if er.type == "+":
+                ans += "(preference p_{} ({}))\n".format(s, s)
             else:
-                name = [[rule.name]]
-            if rule.ethical_type[0] == "+":
-                pref_list.append(
-                    ["preference", "p_" + rule.name, " "+self.format_conjunction(name, [])+" "])
-            else:
-                pref_list.append(
-                    ["preference", "p_" + rule.name, ""+self.format_conjunction([], name)+" "])
-        return pref_list
+                ans += "(preference p_{} (not ({})))\n".format(s, s)
+        return ans + ')'
+
+    def ground_feature_string(self, feature):
+        ans = feature.name
+        for arg, targ in feature.arguments.items():
+            ans += '-' + arg
+        return ans
 
     def generate_domain_file(self, parser):
         text = "(define (domain "+parser.domain_name+"_GEN)\n"
@@ -237,23 +231,34 @@ class Generator:
 
         text += "(:init " + self.generate_init(parser.state) + ")\n\n"
 
-        text += "(:goal " + self.generate_goal(parser.goal) + ")\n\n"
-        # pref_goals = self.generate_preference_goals(parser)
-        # pos_goals = []
-        # pos_goals.extend(parser.positive_goals)
-        # pos_goals.extend(pref_goals)
-        # # print(pos_goals)
-        # text += self.format_conjunction(pos_goals,
-        #                                 parser.negative_goals) + ")\n"
-        # text += "(:metric minimize (+\n"
-        # for rule in parser.ethical_rules:
-        #     text += "(* (is-violated p_" + rule.name + ") " + \
-        #         rule.rank[0] + ")\n"
-        # text += "))\n"
+        goal = self.generate_goal(parser.goal)
+        pref_goal = self.generate_preference_goals(parser)
+
+        text += "(:goal (and \n {} \n {} \n) \n)\n\n".format(goal, pref_goal)
+
+        text += self.generate_valuations(parser)
 
         text += ")\n"
 
         return text
+
+    def generate_valuations(self, parser):
+        ans = "(:metric minimize (+\n"
+        max_rank = reduce(lambda m, r: m if m > r.rank else r.rank,
+                          parser.ethical_ranks, 0)
+        amount = [0 for _ in range(max_rank+1)]
+        for r in parser.ethical_ranks:
+            amount[r.rank] += 1
+        max_val = [0 for _ in range(max_rank+1)]
+        val = [0 for _ in range(max_rank+1)]
+        for i in range(1, max_rank+1):
+            val[i] = max_val[i-1] + 1
+            max_val[i] = amount[i] * val[i] + max_val[i-1]
+        for r in parser.ethical_ranks:
+            ans += "(* (is-violated p_" + self.ground_feature_string(r.feature) + ") " + \
+                str(val[r.rank]) + ")\n"
+        ans += ")\n"
+        return ans
 
 
 if __name__ == '__main__':
