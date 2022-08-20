@@ -307,7 +307,7 @@ class PDDL_Parser:
             self.problem_name = 'unknown'
             self.objects = dict()
             self.state = []
-            self.goals = []
+            self.goal = []
             while tokens:
                 group = tokens.pop(0)
                 t = group[0]
@@ -322,9 +322,9 @@ class PDDL_Parser:
                 elif t == ':objects':
                     self.objects = self.parse_objects(group)
                 elif t == ':init':
-                    self.state = group.pop(0)
+                    self.state = group
                 elif t == ':goal':
-                    self.goals = group.pop(0)
+                    self.goal = group
                 else:
                     print(str(t) + ' is not recognized in problem')
         else:
@@ -379,5 +379,5 @@ if __name__ == '__main__':
     # print('Problem name: ' + parser.problem_name)
     # print('Objects: ' + str(parser.objects))
     # print('State: ' + str(parser.state))
-    # print('Positive goals: ' + str(parser.positive_goals))
-    # print('Negative goals: ' + str(parser.negative_goals))
+    # print('Positive goal: ' + str(parser.positive_goal))
+    # print('Negative goal: ' + str(parser.negative_goal))

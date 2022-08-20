@@ -52,22 +52,16 @@ class Generator:
 
         return text
 
-    def format_init(self, pos_elems):
-        text = ""
-        if not (pos_elems):
-            text = "()"
-        else:
-            text = ""
-            for pos in pos_elems:
-                # TODO : awful there
-                # text += " ("+pos[0]+")"
-                text += " ("
-                for p in pos:
-                    text += " " + p
-                text += ")"
-            text += ""
+    def generate_init(self, atoms):
+        ans = ''
+        atoms.pop(0)
+        for atom in atoms:
+            ans += '\n' + self.generate_atom(atom)
+        return ans
 
-        return text
+    def generate_goal(self, goal):
+        goal.pop(0)
+        return self.generate_formula(goal.pop(0))
 
     def generate_preference_goals(self, parser):
         pref_list = []
@@ -98,6 +92,8 @@ class Generator:
         text += "(:requirements"
         if ":conditional-effects" not in parser.requirements:
             text += " " + ":conditional-effects"
+        if ":typing" not in parser.requirements:
+            text += " " + ":typing"
         if ":preferences" not in parser.requirements:
             text += " " + ":preferences"
         if ":ethical" in parser.requirements:
@@ -181,10 +177,13 @@ class Generator:
             sub = self.generate_formula(formula.pop(0))
             ans += '({} {} {})'.format(op, cond, sub)
         else:
-            pred = formula.pop(0)
-            args = self.generate_arguments_list(formula)
-            ans = '({} {})'.format(pred, args)
+            ans = self.generate_atom(formula)
         return ans
+
+    def generate_atom(self, atom):
+        pred = atom.pop(0)
+        args = self.generate_arguments_list(atom)
+        return '({} {})'.format(pred, args)
 
     def generate_arguments_forall(self, params):
         ans = '('
@@ -224,21 +223,33 @@ class Generator:
 
     def generate_problem_file(self, parser):
         text = "(define (problem "+parser.problem_name+"_GEN)\n"
+
         text += "(:domain " + parser.domain_name+"_GEN )\n"
-        text += "(:init" + self.format_init(parser.state) + ")\n"
-        text += "(:goal "
-        pref_goals = self.generate_preference_goals(parser)
-        pos_goals = []
-        pos_goals.extend(parser.positive_goals)
-        pos_goals.extend(pref_goals)
-        # print(pos_goals)
-        text += self.format_conjunction(pos_goals,
-                                        parser.negative_goals) + ")\n"
-        text += "(:metric minimize (+\n"
-        for rule in parser.ethical_rules:
-            text += "(* (is-violated p_" + rule.name + ") " + \
-                rule.rank[0] + ")\n"
-        text += "))\n"
+
+        text += "(:objects\n"
+        for k, v in parser.objects.items():
+            text += SPACE
+            for vs in v:
+                text += vs+' '
+            text += ' - {} \n'.format(k)
+
+        text += ")\n\n"
+
+        text += "(:init " + self.generate_init(parser.state) + ")\n\n"
+
+        text += "(:goal " + self.generate_goal(parser.goal) + ")\n\n"
+        # pref_goals = self.generate_preference_goals(parser)
+        # pos_goals = []
+        # pos_goals.extend(parser.positive_goals)
+        # pos_goals.extend(pref_goals)
+        # # print(pos_goals)
+        # text += self.format_conjunction(pos_goals,
+        #                                 parser.negative_goals) + ")\n"
+        # text += "(:metric minimize (+\n"
+        # for rule in parser.ethical_rules:
+        #     text += "(* (is-violated p_" + rule.name + ") " + \
+        #         rule.rank[0] + ")\n"
+        # text += "))\n"
 
         text += ")\n"
 
@@ -267,5 +278,5 @@ if __name__ == '__main__':
     with open(new_domain, 'w') as fd:
         fd.write(gen.generate_domain_file(parser))
 
-    # with open(new_problem, 'w') as fp:
-    #     fp.write(gen.generate_problem_file(parser, gen))
+    with open(new_problem, 'w') as fp:
+        fp.write(gen.generate_problem_file(parser))
