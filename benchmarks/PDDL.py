@@ -4,7 +4,7 @@
 
 import re
 from action import Action
-from ethical_rule import Ethical_rule
+from ethical import EthicalRule, EthicalFeature, EthicalRank
 import random
 
 
@@ -54,9 +54,11 @@ class PDDL_Parser:
             self.requirements = []
             self.types = []
             self.actions = []
-            self.ethical_rules = []
             self.predicates = {}
             self.constants = {}
+            self.ethical_features = []
+            self.ethical_ranks = []
+            self.ethical_rules = []
             while tokens:
                 group = tokens.pop(0)
                 t = group.pop(0)
@@ -69,62 +71,76 @@ class PDDL_Parser:
                                             req + ' not supported')
                     self.requirements = group
                 elif t == ':predicates':
-                    self.parse_predicates(group)
+                    self.predicates = self.parse_predicates(group)
                 elif t == ':types':
                     self.types = group
                 elif t == ':action':
                     self.parse_action(group)
+                elif t == ':ethical-features':
+                    self.ethical_features = self.parse_ethical_features(group)
+                elif t == ':ethical-rank':
+                    self.parse_ethical_rank(group)
                 elif t == ':ethical-rule':
                     self.parse_ethical_rule(group)
                 elif t == ':constants':
-                    constant_list = []
-                    while group:
-                        if group[0] == '-':
-                            group.pop(0)
-                            self.constants[group.pop(0)] = constant_list
-                            constant_list = []
-                        else:
-                            constant_list.append(group.pop(0))
-                    if constant_list:
-                        if not 'object' in self.constants:
-                            self.constants['object'] = []
-                        self.constants['object'] += constant_list
+                    self.constants = self.parse_constants(group)
                 else:
                     print(str(t) + ' is not recognized in domain')
-            for i in range(0, int(n_rules)):
-                self.add_random_ethical_rule('r'+str(i), i, int(n_rules))
+            # for i in range(0, int(n_rules)):
+            #     self.add_random_ethical_rule('r'+str(i), i, int(n_rules))
         else:
             raise Exception('File ' + domain_filename +
                             ' does not match domain pattern')
 
-    def add_random_ethical_rule(self, name, r, n):
-        random.seed(r+2)
-        num1 = random.randint(0, 1)
-        num3 = r > (n / 2)
-        num4 = random.randint(1, 5)
-        ethical_type = ['+'] if num1 == 0 else ['-']
-        positive_preconditions = [] if num3 == 1 else [
-            random.sample(self.predicates.keys(), 1)]
-        negative_preconditions = []
-        activation = ['final'] if num3 == 0 else [
-            random.sample(self.actions, 1)[0].name]
-        rank = [str(num4)]
-        # print(name)
-        # print(ethical_type)
-        # print(positive_preconditions)
-        # print(activation)
-        # print(rank)
-        self.ethical_rules.append(Ethical_rule(
-            name, ethical_type, positive_preconditions, activation, rank))
+    # def add_random_ethical_rule(self, name, r, n):
+    #     random.seed(r+2)
+    #     num1 = random.randint(0, 1)
+    #     num3 = r > (n / 2)
+    #     num4 = random.randint(1, 5)
+    #     ethical_type = ['+'] if num1 == 0 else ['-']
+    #     positive_preconditions = [] if num3 == 1 else [
+    #         random.sample(self.predicates.keys(), 1)]
+    #     negative_preconditions = []
+    #     activation = ['final'] if num3 == 0 else [
+    #         random.sample(self.actions, 1)[0].name]
+    #     rank = [str(num4)]
+    #     # print(name)
+    #     # print(ethical_type)
+    #     # print(positive_preconditions)
+    #     # print(activation)
+    #     # print(rank)
+    #     self.ethical_rules.append(EthicalRule(
+    #         name, ethical_type, positive_preconditions, activation, rank))
+
+    # -----------------------------------------------
+    # Parse constants
+    # -----------------------------------------------
+
+    def parse_constants(self, group):
+        ans = {}
+        constant_list = []
+        while group:
+            if group[0] == '-':
+                group.pop(0)
+                ans[group.pop(0)] = constant_list
+                constant_list = []
+            else:
+                constant_list.append(group.pop(0))
+        if constant_list:
+            if not 'object' in ans:
+                ans['object'] = []
+            ans['object'] += constant_list
+        return ans
 
     # -----------------------------------------------
     # Parse predicates
     # -----------------------------------------------
 
     def parse_predicates(self, group):
+        ans = {}
         for pred in group:
             predicate_name = pred.pop(0)
-            if predicate_name in self.predicates:
+            if predicate_name in ans:
                 raise Exception('Predicate ' + predicate_name + ' redefined')
             arguments = {}
             untyped_variables = []
@@ -140,7 +156,8 @@ class PDDL_Parser:
                     untyped_variables.append(t)
             while untyped_variables:
                 arguments[untyped_variables.pop(0)] = 'object'
-            self.predicates[predicate_name] = arguments
+            ans[predicate_name] = arguments
+        return ans
 
     # -----------------------------------------------
     # Parse action
@@ -161,25 +178,7 @@ class PDDL_Parser:
         while group:
             t = group.pop(0)
             if t == ':parameters':
-                if not type(group) is list:
-                    raise Exception('Error with ' + name + ' parameters')
-                parameters = []
-                untyped_parameters = []
-                p = group.pop(0)
-                while p:
-                    t = p.pop(0)
-                    if t == '-':
-                        if not untyped_parameters:
-                            raise Exception(
-                                'Unexpected hyphen in ' + name + ' parameters')
-                        ptype = p.pop(0)
-                        while untyped_parameters:
-                            parameters.append(
-                                [untyped_parameters.pop(0), ptype])
-                    else:
-                        untyped_parameters.append(t)
-                while untyped_parameters:
-                    parameters.append([untyped_parameters.pop(0), 'object'])
+                parameters = self.parse_parameters(group)
             elif t == ':precondition':
                 self.split_predicates(group.pop(
                     0), positive_preconditions, negative_preconditions, name, ' preconditions')
@@ -191,35 +190,121 @@ class PDDL_Parser:
         self.actions.append(Action(name, parameters, positive_preconditions,
                             negative_preconditions, add_effects, del_effects))
 
+    # -----------------------------------------------
+    # Parse ethical features
+    # -----------------------------------------------
+
+    def parse_ethical_features(self, group):
+        ans = []
+        names = set()
+        for pred in group:
+            feature = self.parse_ethical_feature(pred)
+            if feature.name in names:
+                raise Exception('Ethical feature ' +
+                                feature.name + ' redefined')
+            else:
+                names.add(feature.name)
+                ans.append(feature)
+        return ans
+
+    def parse_ethical_feature(self, pred):
+        predicate_name = pred.pop(0)
+        arguments = {}
+        untyped_variables = []
+        while pred:
+            t = pred.pop(0)
+            if t == '-':
+                if not untyped_variables:
+                    raise Exception('Unexpected hyphen in predicates')
+                type = pred.pop(0)
+                while untyped_variables:
+                    arguments[untyped_variables.pop(0)] = type
+            else:
+                untyped_variables.append(t)
+        while untyped_variables:
+            arguments[untyped_variables.pop(0)] = 'object'
+        return EthicalFeature(predicate_name, arguments)
+
+    # -----------------------------------------------
+    # Parse ethical ranks
+    # -----------------------------------------------
+
+    def parse_ethical_rank(self, group):
+        while group:
+            t = group.pop(0)
+            if t == ':type':
+                type = group.pop(0)
+            elif t == ':feature':
+                feature = self.parse_ethical_feature(group.pop(0))
+            elif t == ':rank':
+                rank = int(group.pop(0))
+            else:
+                print(str(t) + ' is not recognized in ethical rank')
+        if type and feature and rank:
+            self.ethical_ranks.append(EthicalRank(feature, type, rank))
+        else:
+            print('Ethical rank missing input')
+
+    # -----------------------------------------------
+    # Parse ethical rules
+    # -----------------------------------------------
+
+    def parse_parameters(self, group):
+        if not type(group) is list:
+            raise Exception('Error with parameters')
+        parameters = []
+        untyped_parameters = []
+        p = group.pop(0)
+        while p:
+            t = p.pop(0)
+            if t == '-':
+                if not untyped_parameters:
+                    raise Exception(
+                        'Unexpected hyphen in parameters')
+                ptype = p.pop(0)
+                while untyped_parameters:
+                    parameters.append(
+                        [untyped_parameters.pop(0), ptype])
+            else:
+                untyped_parameters.append(t)
+        while untyped_parameters:
+            parameters.append([untyped_parameters.pop(0), 'object'])
+        return parameters
+
     def parse_ethical_rule(self, group):
         name = group.pop(0)
         if not type(name) is str:
             raise Exception('Ethical rule without name definition')
-        for eth in self.ethical_rules:
-            if eth.name == name:
+        for rule in self.ethical_rules:
+            if rule.name == name:
                 raise Exception('Ethical rule ' + name + ' redefined')
-
-        ethical_type = []
+        parameters = []
         positive_preconditions = []
         negative_preconditions = []
         activation = []
-        rank = []
+        add_features = []
+        del_features = []
         while group:
             t = group.pop(0)
-            if t == ':type':
-                ethical_type.extend(group.pop(0))
+            if t == ':parameters':
+                parameters = self.parse_parameters(group)
+            elif t == ':activation':
+                act = group.pop(0)
+                if act == 'null':
+                    activation.append(act)
+                else:
+                    activation.append(act.pop(0))
+                    activation.append(self.parse_parameters(act))
             elif t == ':precondition':
                 self.split_predicates(group.pop(
                     0), positive_preconditions, negative_preconditions, name, ' preconditions')
-            elif t == ':activation':
-                activation.append(group.pop(0))
-            elif t == ':rank':
-                rank.append(group.pop(0))
+            elif t == ':features':
+                self.split_predicates(
+                    group.pop(0), add_features, del_features, name, ' features')
             else:
                 print(str(t) + ' is not recognized in action')
-        # self.ethical_rules.append(Action(name, ethical_type, positive_preconditions, negative_preconditions, activation, rank))
-        self.ethical_rules.append(Ethical_rule(
-            name, ethical_type, positive_preconditions, activation, rank))
+        self.ethical_rules.append(EthicalRule(name, parameters, positive_preconditions,
+                                              negative_preconditions, activation, add_features, del_features))
 
     # -----------------------------------------------
     # Parse problem
@@ -308,15 +393,19 @@ if __name__ == '__main__':
     print('----------------------------')
     parser.parse_domain(domain, 0)
     parser.parse_problem(problem)
-    print('Domain name: ' + parser.domain_name)
-    print('Constants: ' + str(parser.constants))
-    for act in parser.actions:
-        print(act)
-    for eth in parser.ethical_rules:
-        print(eth)
+
+    # print('Domain name: ' + parser.domain_name)
+    # print('Constants: ' + str(parser.constants))
+    # for act in parser.actions:
+    #     print(act)
+
+    print('Ethical features: ' + str(parser.ethical_features))
+    print('Ethical ranks: \n' + str(parser.ethical_ranks))
+    print('Ethical rules: \n' + str(parser.ethical_rules))
     print('----------------------------')
-    print('Problem name: ' + parser.problem_name)
-    print('Objects: ' + str(parser.objects))
-    print('State: ' + str(parser.state))
-    print('Positive goals: ' + str(parser.positive_goals))
-    print('Negative goals: ' + str(parser.negative_goals))
+
+    # print('Problem name: ' + parser.problem_name)
+    # print('Objects: ' + str(parser.objects))
+    # print('State: ' + str(parser.state))
+    # print('Positive goals: ' + str(parser.positive_goals))
+    # print('Negative goals: ' + str(parser.negative_goals))
