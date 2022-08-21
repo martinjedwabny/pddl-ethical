@@ -79,7 +79,7 @@ void setILS(IloCplex * cplex)
         cplex->setParam((IloCplex::IntParam) CPX_PARAM_FRACPASS, 0);
         cplex->setParam((IloCplex::IntParam) CPX_PARAM_STRONGCANDLIM, 10);
         cplex->setParam((IloCplex::IntParam) CPX_PARAM_STRONGITLIM, 0);
-        cplex->setParam((IloCplex::IntParam) CPX_PARAM_SUBMIPNODELIM, 500);
+        cplex->setParam((IloCplex::IntParam) 2212, 500);
         cplex->setParam((IloCplex::IntParam) CPX_PARAM_MIPORDTYPE, 0);        
         cplex->setParam((IloCplex::NumParam) CPX_PARAM_BTTOL, 0.9999);
         cplex->setParam((IloCplex::IntParam) CPX_PARAM_BBINTERVAL, 7);
@@ -161,7 +161,7 @@ void setILS(IloCplex * cplex)
         cplex->setParam((IloCplex::IntParam) CPX_PARAM_REPAIRTRIES, 0);
         cplex->setParam((IloCplex::IntParam) CPX_PARAM_STRONGCANDLIM, 5);
         cplex->setParam((IloCplex::IntParam) CPX_PARAM_STRONGITLIM, 0);
-        cplex->setParam((IloCplex::IntParam) CPX_PARAM_SUBMIPNODELIM, 2000);
+        cplex->setParam((IloCplex::IntParam) 2212, 2000);
         cplex->setParam((IloCplex::IntParam) CPX_PARAM_MIPORDTYPE, 3);
         cplex->setParam((IloCplex::NumParam) CPX_PARAM_BTTOL, 0.99);
         cplex->setParam((IloCplex::IntParam) CPX_PARAM_BBINTERVAL, 4);
@@ -238,7 +238,7 @@ void setILS(IloCplex * cplex)
         cplex->setParam((IloCplex::IntParam) CPX_PARAM_FRACPASS, 0);
         cplex->setParam((IloCplex::IntParam) CPX_PARAM_STRONGCANDLIM, 10);
         cplex->setParam((IloCplex::IntParam) CPX_PARAM_STRONGITLIM, 0);
-        cplex->setParam((IloCplex::IntParam) CPX_PARAM_SUBMIPNODELIM, 500);
+        cplex->setParam((IloCplex::IntParam) 2212, 500);
         cplex->setParam((IloCplex::IntParam) CPX_PARAM_MIPORDTYPE, 0);
         cplex->setParam((IloCplex::NumParam) CPX_PARAM_BTTOL, 0.9999);
         cplex->setParam((IloCplex::IntParam) CPX_PARAM_BBINTERVAL, 7);
@@ -314,7 +314,7 @@ void setILS(IloCplex * cplex)
         cplex->setParam((IloCplex::IntParam) CPX_PARAM_FRACPASS, 0);
         cplex->setParam((IloCplex::IntParam) CPX_PARAM_STRONGCANDLIM, 10);
         cplex->setParam((IloCplex::IntParam) CPX_PARAM_STRONGITLIM, 0);
-        cplex->setParam((IloCplex::IntParam) CPX_PARAM_SUBMIPNODELIM, 500);
+        cplex->setParam((IloCplex::IntParam) 2212, 500);
         cplex->setParam((IloCplex::IntParam) CPX_PARAM_MIPORDTYPE, 0);
         cplex->setParam((IloCplex::NumParam) CPX_PARAM_BTTOL, 0.9999);
         cplex->setParam((IloCplex::IntParam) CPX_PARAM_BBINTERVAL, 7);

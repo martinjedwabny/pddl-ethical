@@ -38,6 +38,7 @@
 #include "typecheck.h"
 #include "TIM.h"
 #include "FuncAnalysis.h"
+#include <unistd.h>
 
 //#include "graphconstruct.h"
 #include "RPGBuilder.h"

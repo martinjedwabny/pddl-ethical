@@ -33,6 +33,7 @@
 #include <sys/times.h>
 #include "PreferenceHandler.h"
 #include "landmarksanalysis.h"
+#include <unistd.h>
 
 #include "colours.h"
 

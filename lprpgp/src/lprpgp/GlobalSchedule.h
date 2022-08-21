@@ -136,7 +136,7 @@ public:
 	bool dummy;
 	double timestamp;
 
-	TimelinePoint(LiteralSet & sIn, vector<double> & vIn) : state(sIn), fluents(vIn), after(0), dummy(true), timestamp(0.0) {};
+	TimelinePoint(LiteralSet & sIn, vector<double> & vIn) : state(sIn), fluents(vIn), dummy(true), timestamp(0.0) {};
 	TimelinePoint(LiteralSet & sIn, vector<double> & vIn, list<ScheduleNode*>::iterator & aIn) : state(sIn), fluents(vIn), after(aIn), dummy(false), timestamp(0.0) {};
 	TimelinePoint(TimelinePoint & p) : state(p.state), fluents(p.fluents), after(p.after), dummy(p.dummy), timestamp(p.timestamp) {};
 	TimelinePoint(TimelinePoint & p, list<Literal*> & add, list<Literal*> & del);

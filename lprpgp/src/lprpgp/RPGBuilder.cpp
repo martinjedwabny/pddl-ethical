@@ -1418,7 +1418,7 @@ public:
                 builtPreferences.back().parsed_goal = p->getGoal();
             } else {
                 if (cr == -1) {
-                    //cout << "Warning: at-end preference " << p->getName() << " will always be violated, ignoring\n";                    
+                    cout << "Warning: at-end preference " << p->getName() << " will always be violated, ignoring\n";                    
                     ++(prefNameToNumberOfTimesDefinitelyViolated.insert(make_pair(p->getName(),0)).first->second);
                 }
                 if (cr == 1) {

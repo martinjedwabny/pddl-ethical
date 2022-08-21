@@ -1,2 +1,6 @@
 /.DS_Store
-/lprpgp-mine
+/lprpgp/*.pddl
+/lprpgp/*.txt
+/lprpgp/compile
+/lprpgp/compile_back
+/lprpgp/out

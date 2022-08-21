@@ -272,7 +272,7 @@ void readParams(char * argv[], const int & a)
         }
 
         if (argvi == "mip_limits_submipnodelim") {
-            addIntParam(CPX_PARAM_SUBMIPNODELIM, argv[i+1]);
+            addIntParam(2212, argv[i+1]);
             continue;
         }
 

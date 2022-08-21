@@ -19,14 +19,16 @@ if (!(-e $prob)) {
         exit(1);
 }
 
-open IN, "./compile/lprpgp/lprpgp-cplex -c -2 -1 $dom $prob |";
 
+open IN, "./compile/lprpgp/lprpgp-cplex -c -2 -1 $dom $prob |";
 
 $| = 1;
 
 $cutting = 0;
 $solnfile = 1;
+
 while (<IN>) {
+	print "a \n";
 
 	$consider = 0;
 
@@ -45,7 +47,6 @@ while (<IN>) {
 	}
 
 	if ($consider == 1) {
-
 		if (m/--- New best/ || m/;;;;/ || m/Initial state is a solution/) {
                 	print "\n\n - Opening plan file $soln.$solnfile\n";
 	                print;
