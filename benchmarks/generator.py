@@ -2,56 +2,12 @@
 
 from functools import reduce
 from PDDL import PDDL_Parser
+from action import Action
 
 SPACE = '    '
 
 
 class Generator:
-
-    def find_relevant_rules(self, parser, action):
-        rules = []
-        for rule in parser.ethical_rules:
-            if rule.activation[0] == action:
-                rules.append(rule)
-        return rules
-
-    def format_conjunction(self, pos_elems, neg_elems):
-        text = ""
-        if not (pos_elems or neg_elems):
-            text = "()"
-        elif len(pos_elems) + len(neg_elems) > 1:
-            print(pos_elems)
-            text = "(and"
-            for pos in pos_elems:
-                # TODO : awful there
-                # text += " ("+pos[0]+")"
-                text += " ("
-                for p in pos:
-                    text += " " + str(p)
-                text += ")"
-            for neg in neg_elems:
-                # text += " (not("+neg[0]+"))"
-                text += " ("
-                for n in neg:
-                    text += " not(" + n + ")"
-                text += ")"
-            text += ")"
-        else:
-            if not pos_elems:
-                # TODO : awful there again
-                # text += "(not("+neg_elems[0][0]+"))"
-                text += " ("
-                for n in neg_elems[0]:
-                    text += " not(" + n + ")"
-                text += ")"
-            else:
-                # text += "("+pos_elems[0][0]+")"
-                text += " ("
-                for p in pos_elems[0]:
-                    text += " " + p
-                text += ")"
-
-        return text
 
     def generate_init(self, atoms):
         ans = ''
@@ -60,24 +16,26 @@ class Generator:
             ans += '\n' + self.generate_atom(atom)
         return ans
 
-    def generate_goal(self, goal):
-        goal.pop(0)
-        return self.generate_formula(goal.pop(0))
+    def generate_goal(self, goal, pref_goals):
+        old = goal[1]
+        goal = self.generate_formula(self.merge_and(old, ['check']))
+        return "(:goal {} \n)\n\n".format(goal[:-3]+pref_goals[:-1]+'\n)')
 
     def generate_preference_goals(self, parser):
-        ans = '(and\n'
+        ans = ''
         for er in parser.ethical_ranks:
             s = self.ground_feature_string(er.feature)
+            f = self.ground_feature_string(er.feature, ' ')
             if er.type == "+":
                 ans += "(preference p_{} ({}))\n".format(s, s)
             else:
-                ans += "(preference p_{} (not ({})))\n".format(s, s)
-        return ans + ')'
+                ans += "(preference p_{} (not ({})))\n".format(s, f)
+        return ans
 
-    def ground_feature_string(self, feature):
+    def ground_feature_string(self, feature, sep='-'):
         ans = feature.name
         for arg, targ in feature.arguments.items():
-            ans += '-' + arg
+            ans += sep + arg
         return ans
 
     def generate_domain_file(self, parser):
@@ -116,6 +74,9 @@ class Generator:
         text += ")\n\n"
 
         text += "(:predicates\n"
+
+        parser.predicates['check'] = {}
+
         for pred, args in parser.predicates.items():
             text += SPACE + "("+pred+' '+self.generate_arguments(args)+")\n"
 
@@ -125,29 +86,97 @@ class Generator:
 
         text += ")\n\n"
 
+        parser.actions.append(self.generate_check_action(parser))
+
         for act in parser.actions:
-            text += "(:action " + act.name + "\n"
-
-            text += SPACE + ":parameters " + \
-                self.generate_arguments_list_of_pairs(act.parameters) + "\n"
-
-            text += SPACE + ":precondition "
-            text += self.generate_formula(act.preconditions) + "\n"
-
-            text += SPACE + ":effect "
-            text += self.generate_formula(act.effects) + "\n"
-            # rules = self.find_relevant_rules(parser, act.name)
-            # for rule in rules:
-            #     if not rule.preconditions:
-            #         act.add_effects.extend([[rule.name]])
-            #     else:
-            #         act.add_effects.extend([["when"+self.format_conjunction(
-            #             rule.preconditions, []) + self.format_conjunction([[rule.name]], [])]])
-
-            text += "\n)\n"
+            text += self.generate_transformed_action(parser, act)
 
         text += "\n)\n"
         return text
+
+    def merge_and(self, f1, f2):
+        if len(f1) > 1 and f1[0] == 'and':
+            if len(f2) > 1 and f2[0] == 'and':
+                f1.pop(0)
+                f2.pop(0)
+                return ['and'] + f1 + f2
+            else:
+                return f1 + [f2]
+        else:
+            if len(f2) > 1 and f2[0] == 'and':
+                return f2 + [f1]
+            else:
+                return ['and'] + [f1] + [f2]
+
+    def generate_transformed_action(self, parser, act):
+        text = "(:action " + act.name + "\n"
+
+        text += SPACE + ":parameters " + \
+            self.generate_arguments_list_of_pairs(act.parameters) + "\n"
+
+        text += SPACE + ":precondition "
+
+        if act.name.lower() != 'checkop':
+            act.preconditions = self.merge_and(act.preconditions, ['check'])
+
+        text += self.generate_formula(act.preconditions) + "\n"
+
+        text += SPACE + ":effect "
+
+        new_effects = []
+
+        if act.name.lower() != 'checkop':
+            relevant_rules = list(filter(lambda r: r.activation and len(r.activation) > 0 and r.activation[0].lower(
+            ) == act.name.lower(), parser.ethical_rules))
+            for er in relevant_rules:
+                forall_params = []
+                for item in er.parameters:
+                    if len(item) > 1:
+                        forall_params.extend([item[0], '-', item[1]])
+                    else:
+                        forall_params.append(item[0])
+                forall_precondition = er.preconditions
+                forall_features = er.features
+                if len(forall_params) > 0:
+                    new_effects.append(['forall', forall_params, [
+                        'when', forall_precondition, forall_features]])
+                else:
+                    new_effects.append(
+                        ['when', forall_precondition, forall_features])
+            if len(new_effects) > 0:
+                act.effects = self.merge_and(
+                    act.effects, ['and'] + new_effects)
+            act.effects = self.merge_and(
+                ['and', ['not', ['check']]], act.effects)
+
+        text += self.generate_formula(act.effects) + "\n"
+
+        text += "\n)\n"
+
+        return text
+
+    def generate_check_action(self, parser):
+        name = 'checkOp'
+        params = []
+        precondition = ['not', ['check']]
+        effect = ['and', ['check']]
+        for er in parser.ethical_rules:
+            if er.activation and er.activation[0] == 'null':
+                forall_params = []
+                for item in er.parameters:
+                    if len(item) > 1:
+                        forall_params.extend([item[0], '-', item[1]])
+                    else:
+                        forall_params.append(item[0])
+                forall_precondition = er.preconditions
+                forall_features = er.features
+                if len(forall_params) > 0:
+                    effect.append(['forall', forall_params, [
+                        'when', forall_precondition, forall_features]])
+                else:
+                    effect.append(
+                        ['when', forall_precondition, forall_features])
+        return Action(name, params, precondition, effect)
 
     def generate_formula(self, formula):
         ans = ''
@@ -181,7 +210,7 @@ class Generator:
 
     def generate_arguments_forall(self, params):
         ans = '('
-        while len(params) > 0:
+        while params and len(params) > 0:
             p = params.pop(0)
             if len(params) == 0 or params[0] != '-':
                 ans += p + ' '
@@ -231,10 +260,10 @@ class Generator:
 
         text += "(:init " + self.generate_init(parser.state) + ")\n\n"
 
-        goal = self.generate_goal(parser.goal)
-        pref_goal = self.generate_preference_goals(parser)
+        pref_goals = self.generate_preference_goals(parser)
+        goal = self.generate_goal(parser.goal, pref_goals)
 
-        text += "(:goal (and \n {} \n {} \n) \n)\n\n".format(goal, pref_goal)
+        text += goal
 
         text += self.generate_valuations(parser)
 
@@ -257,7 +286,7 @@ class Generator:
         for r in parser.ethical_ranks:
             ans += "(* (is-violated p_" + self.ground_feature_string(r.feature) + ") " + \
                 str(val[r.rank]) + ")\n"
-        ans += ")\n"
+        ans += ")\n)\n"
         return ans
 
 

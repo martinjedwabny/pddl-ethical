@@ -24,25 +24,21 @@
 (nexty y3 y4 )
 (nexty y4 y4 ))
 
-(:goal (and 
- (and
+(:goal (and
 (updated )
 (haspos agent x2 y4 )
 (not (hascrashed agent ))
-) 
- 
- (and
-(preference p_damagerail-agent (not (damagerail-agent)))
-(preference p_damagerail-c1 (not (damagerail-c1)))
-(preference p_damagerail-c2 (not (damagerail-c2)))
-(preference p_danger-agent-low (not (danger-agent-low)))
-(preference p_danger-c1-low (not (danger-c1-low)))
-(preference p_danger-c2-low (not (danger-c2-low)))
-(preference p_danger-agent-high (not (danger-agent-high)))
-(preference p_danger-c1-high (not (danger-c1-high)))
-(preference p_danger-c2-high (not (danger-c2-high)))
-(preference p_responsiblecollision-agent (not (responsiblecollision-agent)))
-) 
+(check )
+(preference p_damagerail-agent (not (damagerail agent)))
+(preference p_damagerail-c1 (not (damagerail c1)))
+(preference p_damagerail-c2 (not (damagerail c2)))
+(preference p_danger-agent-low (not (danger agent low)))
+(preference p_danger-c1-low (not (danger c1 low)))
+(preference p_danger-c2-low (not (danger c2 low)))
+(preference p_danger-agent-high (not (danger agent high)))
+(preference p_danger-c1-high (not (danger c1 high)))
+(preference p_danger-c2-high (not (danger c2 high)))
+(preference p_responsibleagent (not (responsibleagent)))
 ) 
 )
 
@@ -56,6 +52,7 @@
 (* (is-violated p_danger-agent-high) 48)
 (* (is-violated p_danger-c1-high) 16)
 (* (is-violated p_danger-c2-high) 16)
-(* (is-violated p_responsiblecollision-agent) 48)
+(* (is-violated p_responsibleagent) 48)
+)
 )
 )

@@ -19,14 +19,21 @@
     (hascrashed ?c1 - car )
     (hasbumped ?c1 - car )
     (updated )
+    (check )
     (danger ?c1 - car ?g1 - gravity )
     (damagerail ?c1 - car )
+    (responsibleagent )
 )
 
 (:action setdir
     :parameters (?d1 - direction )
-    :precondition (updated )
+    :precondition (and
+(updated )
+(check )
+) 
+
     :effect (and
+(not (check ))
 (not (hasdir agent left ))
 (not (hasdir agent straight ))
 (not (hasdir agent right ))
@@ -37,8 +44,13 @@
 )
 (:action setstop
     :parameters ()
-    :precondition (updated )
+    :precondition (and
+(updated )
+(check )
+) 
+
     :effect (and
+(not (check ))
 (not (hasdir agent left ))
 (not (hasdir agent straight ))
 (not (hasdir agent right ))
@@ -48,8 +60,13 @@
 )
 (:action update
     :parameters ()
-    :precondition (not (updated ))
+    :precondition (and
+(not (updated ))
+(check )
+) 
+
     :effect (and
+(not (check ))
 (updated )
 (forall (?c1 - car ?c2 - car ?y1 - ypos ?x1 - xpos )
 (when (and
@@ -85,8 +102,13 @@
 )
 (:action go
     :parameters ()
-    :precondition (updated )
+    :precondition (and
+(updated )
+(check )
+) 
+
     :effect (and
+(not (check ))
 (not (updated ))
 (forall (?c1 - car ?d1 - direction ?y1 - ypos ?y2 - ypos ?x1 - xpos ?x2 - xpos )
 (when (and
@@ -101,6 +123,35 @@
 (haspos ?c1 ?x2 ?y2 )
 ) 
 ))
+(forall (?c1 - car ?x1 - xpos ?y1 - ypos )
+(when (and
+(haspos ?c1 ?x1 ?y1 )
+(hasdir ?c1 left )
+(nextx left ?x1 ?x1 )
+) 
+ (damagerail ?c1 )))
+(forall (?c1 - car ?x1 - xpos ?y1 - ypos )
+(when (and
+(haspos ?c1 ?x1 ?y1 )
+(hasdir ?c1 right )
+(nextx right ?x1 ?x1 )
+) 
+ (damagerail ?c1 )))
+) 
+
+
+)
+(:action checkOp
+    :parameters ()
+    :precondition (not (check ))
+    :effect (and
+(check )
+(forall (?c1 - car )
+(when (hascrashed ?c1 ) (danger ?c1 high )))
+(forall (?c1 - car )
+(when (hasbumped ?c1 ) (danger ?c1 low )))
+(when (hascrashed agent ) (responsibleagent ))
+(when (hasbumped agent ) (responsibleagent ))
 ) 
 
 

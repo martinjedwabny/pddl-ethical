@@ -98,6 +98,7 @@
     (:ethical-features
         (danger ?C1 - car ?G1 - gravity)
         (damageRail ?C1 - car)
+        (responsibleAgent)
     )
 
     (:ethical-rank
@@ -156,7 +157,7 @@
     )
     (:ethical-rank
         :feature
-        (responsibleCollision agent)
+        (responsibleAgent)
         :type -
         :rank 4
     )
@@ -180,20 +181,20 @@
         :precondition (hasCrashed agent)
         :activation null
         :features
-        (resposibleCollision agent)
+        (responsibleAgent)
     )
     (:ethical-rule responsibleBumpRule
         :parameters ()
         :precondition (hasBumped agent)
         :activation null
         :features
-        (resposibleCollision agent)
+        (responsibleAgent)
     )
     (:ethical-rule railLeftRule
         :parameters (?C1 - car ?X1 - xPos ?Y1 - yPos)
         :precondition (and
-            (position ?C1 ?X1 ?Y1)
-            (direction ?C1 left)
+            (hasPos ?C1 ?X1 ?Y1)
+            (hasDir ?C1 left)
             (nextX left ?X1 ?X1))
         :activation
         (go())
@@ -203,8 +204,8 @@
     (:ethical-rule railRightRule
         :parameters (?C1 - car ?X1 - xPos ?Y1 - yPos)
         :precondition (and
-            (position ?C1 ?X1 ?Y1)
-            (direction ?C1 right)
+            (hasPos ?C1 ?X1 ?Y1)
+            (hasDir ?C1 right)
             (nextX right ?X1 ?X1))
         :activation
         (go())
