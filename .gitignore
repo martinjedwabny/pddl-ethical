@@ -6,3 +6,5 @@
 /lprpgp/out
 /lprpgp/*.txt.*
 run.txt
+domains/full
+domains/old

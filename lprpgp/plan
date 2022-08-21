@@ -28,8 +28,6 @@ $cutting = 0;
 $solnfile = 1;
 
 while (<IN>) {
-	print "a \n";
-
 	$consider = 0;
 
 	$cutfrom = index($_, "xxxCUTxxx");
