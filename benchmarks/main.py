@@ -5,8 +5,12 @@ from pathlib import Path
 import glob
 
 
+def get_parent_cwd():
+    return Path(__file__).parent.parent.resolve()
+
+
 def add_dataset_from_path_generate(path, all_domains, all_problems):
-    cwd = Path(os.getcwd()).parent
+    cwd = get_parent_cwd()
     domains = glob.glob(os.path.join(cwd, path)+"domain*")
     problems = glob.glob(os.path.join(cwd, path)+"p*")
     domains.sort()
@@ -16,7 +20,7 @@ def add_dataset_from_path_generate(path, all_domains, all_problems):
 
 
 def generate_files():
-    cwd = Path(os.getcwd()).parent
+    cwd = get_parent_cwd()
     all_domains = []
     all_problems = []
     path_openstacks = "domains/test-cases/openstacks/"
@@ -25,7 +29,7 @@ def generate_files():
     add_dataset_from_path_generate(path_openstacks, all_domains, all_problems)
     add_dataset_from_path_generate(path_pathways, all_domains, all_problems)
     add_dataset_from_path_generate(path_TPP, all_domains, all_problems)
-    os.chdir(os.path.join(cwd, "benchmarks"))
+    os.chdir(os.path.join(cwd, "transpiler"))
     command_generator = os.path.join(os.getcwd(), "generator.py")
     for n_rules in range(0, MAX_ETHICAL_RULES+1, int(MAX_ETHICAL_RULES/MAX_CASES)):
         for (domain, problem) in zip(all_domains, all_problems):
@@ -35,7 +39,7 @@ def generate_files():
 
 
 def add_dataset_from_path(path, dataset, key):
-    cwd = Path(os.getcwd()).parent
+    cwd = get_parent_cwd()
     dataset[key] = {}
     for i in range(0, MAX_ETHICAL_RULES+1, int(MAX_ETHICAL_RULES/MAX_CASES)):
         domains = glob.glob(os.path.join(cwd, path)+str(i)+"/domain*")
@@ -46,7 +50,7 @@ def add_dataset_from_path(path, dataset, key):
 
 
 def run_tests(run_number):
-    cwd = Path(os.getcwd()).parent
+    cwd = get_parent_cwd()
     dataset = {}
     # Dataset: Dict<String, Dict<Integer, Pair<Domain, Problem>>>
     path_openstacks = "domains/test-cases/openstacks/"
@@ -71,6 +75,9 @@ def run_tests(run_number):
                     n_probs += 1
                     FNULL = open(os.devnull, 'w')
                     start = time.time()
+                    print(command_planner)
+                    print(domain)
+                    print(problem)
                     subprocess.call([command_planner, domain, problem,
                                     'out/out.txt'], stdout=FNULL, stderr=subprocess.STDOUT)
                     run_time += time.time() - start

@@ -4,3 +4,5 @@
 /lprpgp/compile
 /lprpgp/compile_back
 /lprpgp/out
+/lprpgp/*.txt.*
+run.txt
