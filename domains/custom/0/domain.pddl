@@ -1,55 +1,63 @@
 (define (domain crash-d_GEN)
-    (:requirements :strips :typing :equality :conditional-effects :preferences :negative-preconditions)
-    (:types
-        car xpos ypos direction gravity
-    )
-    (:constants
-        agent - car
-        left straight right - direction
-        low high - gravity
-    )
-    (:predicates
-        (haspos ?c - car ?x1 - xpos ?y1 - ypos)
-        (hasdir ?c - car ?d - direction)
-        (nextx ?d - direction ?x1 - xpos ?x2 - xpos)
-        (nexty ?y1 - ypos ?y2 - ypos)
-        (hascrashed ?c1 - car)
-        (hasbumped ?c1 - car)
-        (updated)
-        (check)
-        (danger ?c1 - car ?g1 - gravity)
-        (damagerail ?c1 - car)
-        (responsibleagent))
+(:requirements :strips :typing :equality :negative-preconditions :conditional-effects)
 
-    (:action setdir
-        :parameters (?d1 - direction )
-        :precondition (and
-            (updated )
-            (check )
-        )
-        :effect (and
-            (not (check ))
-            (not (hasdir agent left ))
-            (not (hasdir agent straight ))
-            (not (hasdir agent right ))
-            (hasdir agent ?d1 )
-        ) 
-    )
-    
+(:types
+    car xpos ypos direction gravity  - object 
+)
+
+(:constants
+    agent  - car 
+    left straight right  - direction 
+    low high  - gravity 
+)
+
+(:predicates
+    (haspos ?c - car ?x1 - xpos ?y1 - ypos )
+    (hasdir ?c - car ?d - direction )
+    (nextx ?d - direction ?x1 - xpos ?x2 - xpos )
+    (nexty ?y1 - ypos ?y2 - ypos )
+    (hascrashed ?c1 - car )
+    (hasbumped ?c1 - car )
+    (updated )
+    (check )
+    (danger ?c1 - car ?g1 - gravity )
+    (damagerail ?c1 - car )
+    (responsibleagent )
+)
+
+(:action setdir
+    :parameters (?d1 - direction )
+    :precondition (and
+(updated )
+(check )
+) 
+
+    :effect (and
+(not (check ))
+(not (hasdir agent left ))
+(not (hasdir agent straight ))
+(not (hasdir agent right ))
+(hasdir agent ?d1 )
+) 
+
+
+)
 (:action setstop
     :parameters ()
     :precondition (and
 (updated )
 (check )
 ) 
+
     :effect (and
 (not (check ))
 (not (hasdir agent left ))
 (not (hasdir agent straight ))
 (not (hasdir agent right ))
 ) 
-)
 
+
+)
 (:action update
     :parameters ()
     :precondition (and
@@ -89,8 +97,9 @@
 ) 
 ))
 ) 
-)
 
+
+)
 (:action go
     :parameters ()
     :precondition (and
