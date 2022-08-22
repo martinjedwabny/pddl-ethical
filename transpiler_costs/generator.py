@@ -10,7 +10,7 @@ SPACE = '    '
 class Generator:
 
     def generate_init(self, atoms):
-        ans = ''
+        ans = '\n(= (total-cost) 0)'
         atoms.pop(0)
         for atom in atoms:
             ans += '\n' + self.generate_atom(atom)
@@ -21,15 +21,11 @@ class Generator:
         goal = self.generate_formula(self.merge_and(old, ['check']))
         return "(:goal {} \n)\n\n".format(goal[:-3]+pref_goals[:-1]+'\n)')
 
-    def generate_preference_goals(self, parser):
-        ans = ''
+    def generate_final_mode_goals(self, parser):
+        ans = '(final-mode)\n'
         for er in parser.ethical_ranks:
             s = self.ground_feature_string(er.feature)
-            f = self.ground_feature_string(er.feature, ' ')
-            if er.type == "+":
-                ans += "(preference p_{} ({}))\n".format(s, s)
-            else:
-                ans += "(preference p_{} (not ({})))\n".format(s, f)
+            ans += "(final-mode-check-{})\n".format(s)
         return ans
 
     def ground_feature_string(self, feature, sep='-'):
@@ -46,8 +42,10 @@ class Generator:
             text += " " + ":conditional-effects"
         if ":typing" not in parser.requirements:
             text += " " + ":typing"
-        if ":preferences" not in parser.requirements:
-            text += " " + ":preferences"
+        if ":action-costs" not in parser.requirements:
+            text += " " + ":action-costs"
+        if ":preferences" in parser.requirements:
+            parser.requirements.remove(":preferences")
         if ":ethical" in parser.requirements:
             parser.requirements.remove(":ethical")
         for req in parser.requirements:
@@ -84,12 +82,20 @@ class Generator:
             text += SPACE + "("+feature.name+' ' + \
                 self.generate_arguments(feature.arguments)+")\n"
 
+        text += SPACE + "(final-mode)\n"
+        for er in parser.ethical_ranks:
+            text += SPACE + "(final-mode-check-" + \
+                self.ground_feature_string(er.feature)+")\n"
+
         text += ")\n\n"
 
         parser.actions.append(self.generate_check_action(parser))
 
         for act in parser.actions:
             text += self.generate_transformed_action(parser, act)
+
+        for act in self.generate_final_mode_actions(parser):
+            text += self.generate_action(parser, act)
 
         text += "\n)\n"
         return text
@@ -108,6 +114,24 @@ class Generator:
             else:
                 return ['and'] + [f1] + [f2]
 
+    def generate_action(self, parser, act):
+        text = "(:action " + act.name + "\n"
+
+        text += SPACE + ":parameters " + \
+            self.generate_arguments_list_of_pairs(act.parameters) + "\n"
+
+        text += SPACE + ":precondition "
+
+        text += self.generate_formula(act.preconditions) + "\n"
+
+        text += SPACE + ":effect "
+
+        text += self.generate_formula(act.effects) + "\n"
+
+        text += "\n)\n"
+
+        return text
+
     def generate_transformed_action(self, parser, act):
         text = "(:action " + act.name + "\n"
 
@@ -116,8 +140,8 @@ class Generator:
 
         text += SPACE + ":precondition "
 
-        if act.name.lower() != 'checkop':
-            act.preconditions = self.merge_and(act.preconditions, ['check'])
+        if act.name.lower() != 'check-ethical-features':
+            act.preconditions = self.merge_and(act.preconditions, ['and', ['not', ['final-mode']], ['check']])
 
         text += self.generate_formula(act.preconditions) + "\n"
 
@@ -125,7 +149,7 @@ class Generator:
 
         new_effects = []
 
-        if act.name.lower() != 'checkop':
+        if act.name.lower() != 'check-ethical-features':
             relevant_rules = list(filter(lambda r: r.activation and len(r.activation) > 0 and r.activation[0].lower(
             ) == act.name.lower(), parser.ethical_rules))
             for er in relevant_rules:
@@ -155,10 +179,39 @@ class Generator:
 
         return text
 
+    def generate_final_mode_actions(self, parser):
+        ans = [Action('final-mode-start', [], ['not', ['final-mode']], ['final-mode'])]
+        max_rank = reduce(lambda m, r: m if m > r.rank else r.rank,
+                          parser.ethical_ranks, 0)
+        amount = [0 for _ in range(max_rank+1)]
+        for r in parser.ethical_ranks:
+            amount[r.rank] += 1
+        max_val = [0 for _ in range(max_rank+1)]
+        val = [0 for _ in range(max_rank+1)]
+        for i in range(1, max_rank+1):
+            val[i] = max_val[i-1] + 1
+            max_val[i] = amount[i] * val[i] + max_val[i-1]
+        for r in parser.ethical_ranks:
+            g_feature = self.ground_feature_string(r.feature)
+            p_feature = self.ground_feature_string(r.feature, ' ')
+            if r.type == '-':
+                a1 = Action('final-mode-check-op-False-'+g_feature, [],
+                            ['and', ['final-mode'], [p_feature], ['not', ['final-mode-check-'+g_feature]]], ['and', ['final-mode-check-'+g_feature], ['increase', ['total-cost'], val[r.rank]]])
+                a2 = Action('final-mode-check-op-True-'+g_feature, [],
+                            ['and', ['final-mode'], ['not', [p_feature]], ['not', ['final-mode-check-'+g_feature]]], ['final-mode-check-'+g_feature])
+            elif r.type == '+':
+                a1 = Action('final-mode-check-op-False-'+g_feature, [],
+                            ['and', ['final-mode'], [p_feature], ['not', ['final-mode-check-'+g_feature]]], ['final-mode-check-'+g_feature])
+                a2 = Action('final-mode-check-op-True-'+g_feature, [],
+                            ['and', ['final-mode'], ['not', [p_feature]], ['not', ['final-mode-check-'+g_feature]]], ['and', ['final-mode-check-'+g_feature], ['increase', ['total-cost'], val[r.rank]]])
+            ans.append(a1)
+            ans.append(a2)
+        return ans
+
     def generate_check_action(self, parser):
-        name = 'checkOp'
+        name = 'check-ethical-features'
         params = []
-        precondition = ['not', ['check']]
+        precondition = ['and', ['not', ['final-mode']], ['not', ['check']]]
         effect = ['and', ['check']]
         for er in parser.ethical_rules:
             if er.activation and er.activation[0] == 'null':
@@ -180,6 +233,8 @@ class Generator:
 
     def generate_formula(self, formula):
         ans = ''
+        if isinstance(formula, int):
+            return str(formula)
         if len(formula) == 0:
             ans = '()'
         elif formula[0] == 'not':
@@ -194,7 +249,7 @@ class Generator:
             args = self.generate_arguments_forall(formula.pop(0))
             sub = self.generate_formula(formula.pop(0))
             ans += '({} {}\n{})'.format(op, args, sub)
-        elif formula[0] == 'when':
+        elif formula[0] == 'when' or formula[0] == 'increase':
             op = formula.pop(0)
             cond = self.generate_formula(formula.pop(0))
             sub = self.generate_formula(formula.pop(0))
@@ -249,45 +304,21 @@ class Generator:
 
         text += "(:domain " + parser.domain_name+"_GEN )\n"
 
-        text += "(:objects\n"
-        for k, v in parser.objects.items():
-            text += SPACE
-            for vs in v:
-                text += vs+' '
-            text += ' - {} \n'.format(k)
-
-        text += ")\n\n"
-
         text += "(:init " + self.generate_init(parser.state) + ")\n\n"
 
-        pref_goals = self.generate_preference_goals(parser)
+        pref_goals = self.generate_final_mode_goals(parser)
         goal = self.generate_goal(parser.goal, pref_goals)
 
         text += goal
 
-        text += self.generate_valuations(parser)
+        text += self.generate_metric()
 
         text += ")\n"
 
         return text
 
-    def generate_valuations(self, parser):
-        ans = "(:metric minimize (+\n"
-        max_rank = reduce(lambda m, r: m if m > r.rank else r.rank,
-                          parser.ethical_ranks, 0)
-        amount = [0 for _ in range(max_rank+1)]
-        for r in parser.ethical_ranks:
-            amount[r.rank] += 1
-        max_val = [0 for _ in range(max_rank+1)]
-        val = [0 for _ in range(max_rank+1)]
-        for i in range(1, max_rank+1):
-            val[i] = max_val[i-1] + 1
-            max_val[i] = amount[i] * val[i] + max_val[i-1]
-        for r in parser.ethical_ranks:
-            ans += "(* (is-violated p_" + self.ground_feature_string(r.feature) + ") " + \
-                str(val[r.rank]) + ")\n"
-        ans += ")\n)\n"
-        return ans
+    def generate_metric(self):
+        return "(:metric minimize (total-cost))\n"
 
 
 if __name__ == '__main__':

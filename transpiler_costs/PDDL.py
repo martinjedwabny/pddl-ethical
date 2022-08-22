@@ -305,7 +305,6 @@ class PDDL_Parser:
         tokens = self.scan_tokens(problem_filename)
         if type(tokens) is list and tokens.pop(0) == 'define':
             self.problem_name = 'unknown'
-            self.objects = dict()
             self.state = []
             self.goal = []
             while tokens:
@@ -320,7 +319,7 @@ class PDDL_Parser:
                 elif t == ':requirements':
                     pass  # Ignore requirements in problem, parse them in the domain
                 elif t == ':objects':
-                    self.objects = self.parse_objects(group)
+                    self.parse_objects(group)
                 elif t == ':init':
                     self.state = group
                 elif t == ':goal':
@@ -346,7 +345,11 @@ class PDDL_Parser:
             if not 'object' in ans:
                 ans['object'] = []
             ans['object'] += object_list
-        return ans
+        for t in ans.keys():
+            if t in self.constants:
+                self.constants[t].extend(ans[t])
+            else:
+                self.constants[t] = ans[t]
 
 
 # ==========================================
