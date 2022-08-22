@@ -25,5 +25,5 @@ Extension of PDDL with ethical rules.
     
     Example:
 
-        ./downward/fast-downward.py --alias seq-opt-fdss-1 --plan-file plans/custom/0/sas_plan --search-time-limit 1000s transpiled/custom/domain.pddl transpiled/custom/problem.pddl
+        ./downward/fast-downward.py --alias seq-opt-fdss-1 --plan-file transpiled/custom/out.plan --search-time-limit 1000s transpiled/custom/domain.pddl transpiled/custom/problem.pddl
 
