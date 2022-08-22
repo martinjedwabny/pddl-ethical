@@ -2,9 +2,8 @@
 
 Extension of PDDL with ethical rules
 
-- benchmarks: test scripts
-- domains: IPC domains with ethical rules
-- transpiler: compiler from ethical rules to PDDL utilities
-- lprpg-p: utility PDDL planner
-
-*Note*: it is necessary to compile the planner to execute the scripts. CPLEX library is needed for this.
+- benchmarks: experimentation scripts.
+- domains: experimentation domains with ethical rules and transformed versions.
+- transpiler_preferences: compiler from ethical rules to PDDL preferences.
+- transpiler_costs: compiler from ethical rules to PDDL action costs.
+- downward: FD action cost PDDL planner [Link](https://www.fast-downward.org/).
