@@ -67,6 +67,8 @@ class Generator:
 
         text += ")\n\n"
 
+        text += "(:functions (total-cost))\n\n"
+
         text += "(:predicates\n"
 
         parser.predicates['check'] = {}
