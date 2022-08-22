@@ -5,9 +5,6 @@ from pathlib import Path
 from PDDL import PDDL_Parser
 from action import Action
 
-SPACE = '    '
-
-
 class Generator:
 
     def generate_init(self, atoms):
@@ -56,7 +53,6 @@ class Generator:
 
         text += "(:types\n"
         for k, v in parser.types.items():
-            text += SPACE
             for vs in v:
                 text += vs+' '
             text += ' - {} \n'.format(k)
@@ -65,7 +61,6 @@ class Generator:
 
         text += "(:constants\n"
         for k, v in parser.constants.items():
-            text += SPACE
             for vs in v:
                 text += vs+' '
             text += ' - {} \n'.format(k)
@@ -77,15 +72,15 @@ class Generator:
         parser.predicates['check'] = {}
 
         for pred, args in parser.predicates.items():
-            text += SPACE + "("+pred+' '+self.generate_arguments(args)+")\n"
+            text += "("+pred+' '+self.generate_arguments(args)+")\n"
 
         for feature in parser.ethical_features:
-            text += SPACE + "("+feature.name+' ' + \
+            text += "("+feature.name+' ' + \
                 self.generate_arguments(feature.arguments)+")\n"
 
-        text += SPACE + "(final-mode)\n"
+        text += "(final-mode)\n"
         for er in parser.ethical_ranks:
-            text += SPACE + "(final-mode-check-" + \
+            text += "(final-mode-check-" + \
                 self.ground_feature_string(er.feature)+")\n"
 
         text += ")\n\n"
@@ -118,14 +113,14 @@ class Generator:
     def generate_action(self, parser, act):
         text = "(:action " + act.name + "\n"
 
-        text += SPACE + ":parameters " + \
+        text += ":parameters " + \
             self.generate_arguments_list_of_pairs(act.parameters) + "\n"
 
-        text += SPACE + ":precondition "
+        text += ":precondition "
 
         text += self.generate_formula(act.preconditions) + "\n"
 
-        text += SPACE + ":effect "
+        text += ":effect "
 
         text += self.generate_formula(act.effects) + "\n"
 
@@ -136,17 +131,17 @@ class Generator:
     def generate_transformed_action(self, parser, act):
         text = "(:action " + act.name + "\n"
 
-        text += SPACE + ":parameters " + \
+        text += ":parameters " + \
             self.generate_arguments_list_of_pairs(act.parameters) + "\n"
 
-        text += SPACE + ":precondition "
+        text += ":precondition "
 
         if act.name.lower() != 'check-ethical-features':
             act.preconditions = self.merge_and(act.preconditions, ['and', ['not', ['final-mode']], ['check']])
 
         text += self.generate_formula(act.preconditions) + "\n"
 
-        text += SPACE + ":effect "
+        text += ":effect "
 
         new_effects = []
 
