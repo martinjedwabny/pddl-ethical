@@ -52,7 +52,7 @@ class PDDL_Parser:
         if type(tokens) is list and tokens.pop(0) == 'define':
             self.domain_name = 'unknown'
             self.requirements = []
-            self.types = []
+            self.types = {}
             self.actions = []
             self.predicates = {}
             self.constants = {}
@@ -86,31 +86,9 @@ class PDDL_Parser:
                     self.constants = self.parse_constants(group)
                 else:
                     print(str(t) + ' is not recognized in domain')
-            # for i in range(0, int(n_rules)):
-            #     self.add_random_ethical_rule('r'+str(i), i, int(n_rules))
         else:
             raise Exception('File ' + domain_filename +
                             ' does not match domain pattern')
-
-    # def add_random_ethical_rule(self, name, r, n):
-    #     random.seed(r+2)
-    #     num1 = random.randint(0, 1)
-    #     num3 = r > (n / 2)
-    #     num4 = random.randint(1, 5)
-    #     ethical_type = ['+'] if num1 == 0 else ['-']
-    #     positive_preconditions = [] if num3 == 1 else [
-    #         random.sample(self.predicates.keys(), 1)]
-    #     negative_preconditions = []
-    #     activation = ['final'] if num3 == 0 else [
-    #         random.sample(self.actions, 1)[0].name]
-    #     rank = [str(num4)]
-    #     # print(name)
-    #     # print(ethical_type)
-    #     # print(positive_preconditions)
-    #     # print(activation)
-    #     # print(rank)
-    #     self.ethical_rules.append(EthicalRule(
-    #         name, ethical_type, positive_preconditions, activation, rank))
 
     # -----------------------------------------------
     # Parse constants
