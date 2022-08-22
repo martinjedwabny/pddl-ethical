@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from functools import reduce
+from pathlib import Path
 from PDDL import PDDL_Parser
 from action import Action
 
@@ -289,18 +290,20 @@ if __name__ == '__main__':
     import os
     domain = sys.argv[1]
     problem = sys.argv[2]
-    n_rules = sys.argv[3]
+    domain_out = sys.argv[3]
+    problem_out = sys.argv[4]
 
-    new_domain = os.path.dirname(os.path.realpath(
-        domain)) + "/" + n_rules + "/" + os.path.basename(domain)
-    new_problem = os.path.dirname(os.path.realpath(
-        problem)) + "/" + n_rules + "/" + os.path.basename(problem)
+    new_domain = Path(str(Path().parent.resolve()) +
+                      "/" + domain_out)
+    new_problem = Path(str(Path().parent.resolve()) +
+                       "/" + problem_out)
 
     os.makedirs(os.path.dirname(new_domain), exist_ok=True)
+    os.makedirs(os.path.dirname(new_problem), exist_ok=True)
 
     gen = Generator()
     parser = PDDL_Parser()
-    parser.parse_domain(domain, n_rules)
+    parser.parse_domain(domain)
     parser.parse_problem(problem)
 
     with open(new_domain, 'w') as fd:

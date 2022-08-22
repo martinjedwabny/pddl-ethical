@@ -318,32 +318,6 @@ class Generator:
     def generate_metric(self):
         return "(:metric minimize (total-cost))\n"
 
-
-# if __name__ == '__main__':
-#     import sys
-#     import os
-#     domain = sys.argv[1]
-#     problem = sys.argv[2]
-#     n_rules = sys.argv[3]
-
-#     new_domain = os.path.dirname(os.path.realpath(
-#         domain)) + "/" + n_rules + "/" + os.path.basename(domain)
-#     new_problem = os.path.dirname(os.path.realpath(
-#         problem)) + "/" + n_rules + "/" + os.path.basename(problem)
-
-#     os.makedirs(os.path.dirname(new_domain), exist_ok=True)
-
-#     gen = Generator()
-#     parser = PDDL_Parser()
-#     parser.parse_domain(domain, n_rules)
-#     parser.parse_problem(problem)
-
-#     with open(new_domain, 'w') as fd:
-#         fd.write(gen.generate_domain_file(parser))
-
-#     with open(new_problem, 'w') as fp:
-#         fp.write(gen.generate_problem_file(parser))
-
 if __name__ == '__main__':
     import sys
     import os

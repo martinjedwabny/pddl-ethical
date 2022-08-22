@@ -8,7 +8,6 @@ import glob
 def get_parent_cwd():
     return Path(__file__).parent.parent.resolve()
 
-
 def add_dataset_from_path_generate(path, all_domains, all_problems):
     cwd = get_parent_cwd()
     domains = glob.glob(os.path.join(cwd, path)+"domain*")
@@ -29,13 +28,15 @@ def generate_files():
     add_dataset_from_path_generate(path_openstacks, all_domains, all_problems)
     add_dataset_from_path_generate(path_pathways, all_domains, all_problems)
     add_dataset_from_path_generate(path_TPP, all_domains, all_problems)
-    os.chdir(os.path.join(cwd, "transpiler_costs"))
+    os.chdir(os.path.join(cwd, "transpiler_benchmarks"))
     command_generator = os.path.join(os.getcwd(), "generator.py")
-    for n_rules in range(0, MAX_ETHICAL_RULES+1, int(MAX_ETHICAL_RULES/MAX_CASES)):
-        for (domain, problem) in zip(all_domains, all_problems):
-            os.system('python -B '+command_generator+' ' +
-                      domain+' '+problem+' '+str(n_rules))
-        print('Generated files with rules: '+str(n_rules))
+    # for n_rules in range(0, MAX_ETHICAL_RULES+1, int(MAX_ETHICAL_RULES/MAX_CASES)):
+    features = 5
+    rules = 5
+    rule_length = 3
+    for (domain, problem) in zip(all_domains, all_problems):
+        os.system('python -B {} {} {} {} {} {}'.format(command_generator, domain, problem, features, rules, rule_length))
+    print('Generated files with features: {}, rules: {}, rule_length: {}.'.format(features, rules, rule_length))
 
 
 def add_dataset_from_path(path, dataset, key):
@@ -87,10 +88,15 @@ def run_tests(run_number):
 
 
 # Main procedure
+MIN_ETHICAL_FEATURES = 0
+MAX_ETHICAL_FEATURES = 22
+MIN_ETHICAL_RULES = 0
 MAX_ETHICAL_RULES = 22
+MIN_ETHICAL_RULE_LENGTH = 1
+MAX_ETHICAL_RULE_LENGTH = 22
 MAX_CASES = 11
 RUNS = 1
 
 for i in range(0, RUNS):
-    # generate_files()
-    run_tests(i)
+    generate_files()
+    # run_tests(i)

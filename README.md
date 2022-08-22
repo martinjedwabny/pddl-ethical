@@ -3,8 +3,7 @@
 Extension of PDDL with ethical rules.
 
 ## Directories:
-- benchmarks: experimentation scripts.
-- domains: experimentation domains with ethical rules and transformed versions.
+- domains: domains with ethical rules and transpiled versions.
 - transpiler_preferences: compiler from ethical rules to PDDL preferences.
 - transpiler_costs: compiler from ethical rules to PDDL action costs.
 - downward: FD action cost PDDL planner [Link](https://www.fast-downward.org/).
