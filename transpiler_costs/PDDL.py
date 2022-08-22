@@ -47,7 +47,7 @@ class PDDL_Parser:
     # Parse domain
     # -----------------------------------------------
 
-    def parse_domain(self, domain_filename, n_rules):
+    def parse_domain(self, domain_filename):
         tokens = self.scan_tokens(domain_filename)
         if type(tokens) is list and tokens.pop(0) == 'define':
             self.domain_name = 'unknown'

@@ -23,13 +23,13 @@ def generate_files():
     cwd = get_parent_cwd()
     all_domains = []
     all_problems = []
-    path_openstacks = "domains/test-cases/openstacks/"
-    path_pathways = "domains/test-cases/pathways/"
-    path_TPP = "domains/test-cases/TPP/"
+    path_openstacks = "domains/openstacks/"
+    path_pathways = "domains/pathways/"
+    path_TPP = "domains/TPP/"
     add_dataset_from_path_generate(path_openstacks, all_domains, all_problems)
     add_dataset_from_path_generate(path_pathways, all_domains, all_problems)
     add_dataset_from_path_generate(path_TPP, all_domains, all_problems)
-    os.chdir(os.path.join(cwd, "transpiler"))
+    os.chdir(os.path.join(cwd, "transpiler_costs"))
     command_generator = os.path.join(os.getcwd(), "generator.py")
     for n_rules in range(0, MAX_ETHICAL_RULES+1, int(MAX_ETHICAL_RULES/MAX_CASES)):
         for (domain, problem) in zip(all_domains, all_problems):
@@ -53,9 +53,9 @@ def run_tests(run_number):
     cwd = get_parent_cwd()
     dataset = {}
     # Dataset: Dict<String, Dict<Integer, Pair<Domain, Problem>>>
-    path_openstacks = "domains/test-cases/openstacks/"
-    path_pathways = "domains/test-cases/pathways/"
-    path_TPP = "domains/test-cases/TPP/"
+    path_openstacks = "domains/openstacks/"
+    path_pathways = "domains/pathways/"
+    path_TPP = "domains/TPP/"
     add_dataset_from_path(path_openstacks, dataset, 'openstacks')
     add_dataset_from_path(path_pathways, dataset, 'pathways')
     add_dataset_from_path(path_TPP, dataset, 'TPP')

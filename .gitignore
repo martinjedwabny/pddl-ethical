@@ -1,12 +1,7 @@
 /.DS_Store
-/lprpgp/*.pddl
-/lprpgp/*.txt
-/lprpgp/compile
-/lprpgp/compile_back
-/lprpgp/out
-/lprpgp/*.txt.*
 run.txt
 domains/full
 domains/old
-/lprpgp
 /planners
+/plans
+/transpiled
