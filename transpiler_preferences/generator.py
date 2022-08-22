@@ -133,12 +133,13 @@ class Generator:
                         forall_params.append(item[0])
                 forall_precondition = er.preconditions
                 forall_features = er.features
+                forall_effect = ['when', forall_precondition, forall_features] if len(
+                    forall_precondition) > 0 else forall_features
                 if len(forall_params) > 0:
-                    new_effects.append(['forall', forall_params, [
-                        'when', forall_precondition, forall_features]])
-                else:
                     new_effects.append(
-                        ['when', forall_precondition, forall_features])
+                        ['forall', forall_params, forall_effect])
+                else:
+                    new_effects.append(forall_effect)
             if len(new_effects) > 0:
                 act.effects = self.merge_and(
                     act.effects, ['and'] + new_effects)
@@ -166,12 +167,13 @@ class Generator:
                         forall_params.append(item[0])
                 forall_precondition = er.preconditions
                 forall_features = er.features
+                forall_effect = ['when', forall_precondition, forall_features] if len(
+                    forall_precondition) > 0 else forall_features
                 if len(forall_params) > 0:
-                    effect.append(['forall', forall_params, [
-                        'when', forall_precondition, forall_features]])
-                else:
                     effect.append(
-                        ['when', forall_precondition, forall_features])
+                        ['forall', forall_params, forall_effect])
+                else:
+                    effect.append(forall_effect)
         return Action(name, params, precondition, effect)
 
     def generate_formula(self, formula):
