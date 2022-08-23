@@ -7,5 +7,5 @@ domains/old
 /transpiled
 /benchmarks
 /transpiler_benchmarks
-/out-final
-/out-tmp
+out-final
+out-tmp
