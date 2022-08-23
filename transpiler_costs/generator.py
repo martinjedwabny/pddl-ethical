@@ -194,14 +194,14 @@ class Generator:
             g_feature = self.ground_feature_string(r.feature)
             p_feature = self.ground_feature_string(r.feature, ' ')
             if r.type == '-':
-                a1 = Action('final-mode-check-op-False-'+g_feature, [],
+                a1 = Action('final-mode-check-op-true-'+g_feature, [],
                             ['and', ['final-mode'], [p_feature], ['not', ['final-mode-check-'+g_feature]]], ['and', ['final-mode-check-'+g_feature], ['increase', ['total-cost'], val[r.rank]]])
-                a2 = Action('final-mode-check-op-True-'+g_feature, [],
+                a2 = Action('final-mode-check-op-false-'+g_feature, [],
                             ['and', ['final-mode'], ['not', [p_feature]], ['not', ['final-mode-check-'+g_feature]]], ['final-mode-check-'+g_feature])
             elif r.type == '+':
-                a1 = Action('final-mode-check-op-False-'+g_feature, [],
+                a1 = Action('final-mode-check-op-true-'+g_feature, [],
                             ['and', ['final-mode'], [p_feature], ['not', ['final-mode-check-'+g_feature]]], ['final-mode-check-'+g_feature])
-                a2 = Action('final-mode-check-op-True-'+g_feature, [],
+                a2 = Action('final-mode-check-op-false-'+g_feature, [],
                             ['and', ['final-mode'], ['not', [p_feature]], ['not', ['final-mode-check-'+g_feature]]], ['and', ['final-mode-check-'+g_feature], ['increase', ['total-cost'], val[r.rank]]])
             ans.append(a1)
             ans.append(a2)
