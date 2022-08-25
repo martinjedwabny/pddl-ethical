@@ -16,7 +16,7 @@ Extension of PDDL with ethical rules.
     
     Example:
 
-        python transpiler_costs/generator.py domains/custom/domain.pddl domains/custom/problem.pddl transpiled/custom/costs/domain.pddl transpiled/custom/costs/problem.pddl
+        python transpiler_costs/generator.py domains/driver/domain.pddl domains/driver/problem.pddl transpiled/driver/costs/domain.pddl transpiled/driver/costs/problem.pddl
 
 - transpiler_preferences: 
 
@@ -24,7 +24,7 @@ Extension of PDDL with ethical rules.
     
     Example:
 
-        python transpiler_preferences/generator.py domains/custom/domain.pddl domains/custom/problem.pddl transpiled/custom/preferences/domain.pddl transpiled/custom/preferences/problem.pddl
+        python transpiler_preferences/generator.py domains/driver/domain.pddl domains/driver/problem.pddl transpiled/driver/preferences/domain.pddl transpiled/driver/preferences/problem.pddl
 
 - planner:
 
@@ -32,5 +32,5 @@ Extension of PDDL with ethical rules.
     
     Example:
 
-        ./downward/fast-downward.py --alias seq-opt-fdss-1 --plan-file transpiled/custom/out.plan --search-time-limit 1000s transpiled/custom/domain.pddl transpiled/custom/problem.pddl
+        ./downward/fast-downward.py --alias seq-opt-fdss-1 --plan-file transpiled/driver/out.plan --search-time-limit 1000s transpiled/driver/domain.pddl transpiled/driver/problem.pddl
 
