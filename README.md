@@ -2,6 +2,8 @@
 
 Extension of PDDL with ethical rules.
 
+Presented in the FLAIRS conference as a [full paper](https://journals.flvc.org/FLAIRS/article/view/128492/130071).
+
 ## Directories:
 - domains: domains with ethical rules and transpiled versions.
 - transpiler_costs: compiler from ethical rules to PDDL action costs.
