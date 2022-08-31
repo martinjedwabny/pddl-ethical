@@ -12,11 +12,13 @@ class Generator:
         atoms.pop(0)
         for atom in atoms:
             ans += '\n' + self.generate_atom(atom)
+        ans += '(normal-mode)\n'
         return ans
 
     def generate_goal(self, goal, pref_goals):
         old = goal[1]
-        goal = self.generate_formula(self.merge_and(old, ['check']))
+        goal = self.generate_formula(self.merge_and(
+            old, ['and', ['check'], ['final-mode']]))
         return "(:goal {} \n)\n\n".format(goal[:-3]+pref_goals[:-1]+'\n)')
 
     def generate_preference_goals(self, parser):
@@ -25,9 +27,9 @@ class Generator:
             s = self.ground_feature_string(er.feature)
             f = self.ground_feature_string(er.feature, ' ')
             if er.type == "+":
-                ans += "(preference p_{} ({}))\n".format(s, s)
+                ans += "(preference p_{} (and (final-mode) ({})))\n".format(s, s)
             else:
-                ans += "(preference p_{} (not ({})))\n".format(s, f)
+                ans += "(preference p_{} (and (final-mode) (not ({}))))\n".format(s, f)
         return ans
 
     def ground_feature_string(self, feature, sep='-'):
@@ -46,6 +48,8 @@ class Generator:
             text += " " + ":typing"
         if ":preferences" not in parser.requirements:
             text += " " + ":preferences"
+        if ":negative-preconditions" not in parser.requirements:
+            text += " " + ":negative-preconditions"
         if ":ethical" in parser.requirements:
             parser.requirements.remove(":ethical")
         for req in parser.requirements:
@@ -72,6 +76,8 @@ class Generator:
         text += "(:predicates\n"
 
         parser.predicates['check'] = {}
+        parser.predicates['normal-mode'] = {}
+        parser.predicates['final-mode'] = {}
 
         for pred, args in parser.predicates.items():
             text += "("+pred+' '+self.generate_arguments(args)+")\n"
@@ -83,12 +89,20 @@ class Generator:
         text += ")\n\n"
 
         parser.actions.append(self.generate_check_action(parser))
+        parser.actions.append(self.generate_final_action(parser))
 
         for act in parser.actions:
             text += self.generate_transformed_action(parser, act)
 
         text += "\n)\n"
         return text
+
+    def generate_final_action(self, parser):
+        return Action(
+            'final-mode-start', 
+            [], 
+            ['and', ['check'], ['normal-mode'], ['not', ['final-mode']]], 
+            ['and', ['not', ['normal-mode']], ['final-mode']])
 
     def merge_and(self, f1, f2):
         if len(f1) > 1 and f1[0] == 'and':
@@ -112,8 +126,8 @@ class Generator:
 
         text += ":precondition "
 
-        if act.name.lower() != 'checkop':
-            act.preconditions = self.merge_and(act.preconditions, ['check'])
+        if act.name.lower() != 'checkop' and act.name.lower() != 'final-mode-start':
+            act.preconditions = self.merge_and(act.preconditions, ['and', ['normal-mode'], ['check']])
 
         text += self.generate_formula(act.preconditions) + "\n"
 
@@ -121,7 +135,7 @@ class Generator:
 
         new_effects = []
 
-        if act.name.lower() != 'checkop':
+        if act.name.lower() != 'checkop' and act.name.lower() != 'final-mode-start':
             relevant_rules = list(filter(lambda r: r.activation and len(r.activation) > 0 and r.activation[0].lower(
             ) == act.name.lower(), parser.ethical_rules))
             for er in relevant_rules:

@@ -34,5 +34,5 @@ Presented in the FLAIRS conference as a [full paper](https://journals.flvc.org/F
     
     Example:
 
-        ./downward/fast-downward.py --alias seq-opt-fdss-1 --plan-file transpiled/driver/out.plan --search-time-limit 1000s transpiled/driver/domain.pddl transpiled/driver/problem.pddl
+        ./downward/fast-downward.py --alias seq-opt-fdss-1 --plan-file transpiled/driver/costs/out.plan --search-time-limit 1000s transpiled/driver/costs/domain.pddl transpiled/driver/costs/problem.pddl
 

@@ -11,4 +11,5 @@ domains/old
 /transpiler_benchmarks_preferences
 out-final
 out-tmp
+/out-lprpgp
 /lprpgp-mine
