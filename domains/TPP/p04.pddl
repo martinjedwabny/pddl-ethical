@@ -1,38 +1,30 @@
-(define (problem TPP)
-(:domain TPP-Propositional)
-(:objects
-	goods1 goods2 goods3 goods4 - goods
-	truck1 - truck
-	market1 - market
-	depot1 - depot
-	level0 level1 - level)
-
+(define (problem grounded-STRIPS-TPP)
+(:domain grounded-STRIPS-TPP-PROPOSITIONAL)
 (:init
-	(next level1 level0)
-	(ready-to-load goods1 market1 level0)
-	(ready-to-load goods2 market1 level0)
-	(ready-to-load goods3 market1 level0)
-	(ready-to-load goods4 market1 level0)
-	(stored goods1 level0)
-	(stored goods2 level0)
-	(stored goods3 level0)
-	(stored goods4 level0)
-	(loaded goods1 truck1 level0)
-	(loaded goods2 truck1 level0)
-	(loaded goods3 truck1 level0)
-	(loaded goods4 truck1 level0)
-	(connected depot1 market1)
-	(connected market1 depot1)
-	(on-sale goods1 market1 level1)
-	(on-sale goods2 market1 level1)
-	(on-sale goods3 market1 level1)
-	(on-sale goods4 market1 level1)
-	(at truck1 depot1))
-
-(:goal (and
-	(stored goods1 level1)
-	(stored goods2 level1)
-	(stored goods3 level1)
-	(stored goods4 level1)))
-
+(AT-TRUCK1-DEPOT1)
+(ON-SALE-GOODS4-MARKET1-LEVEL1)
+(ON-SALE-GOODS3-MARKET1-LEVEL1)
+(ON-SALE-GOODS2-MARKET1-LEVEL1)
+(ON-SALE-GOODS1-MARKET1-LEVEL1)
+(LOADED-GOODS4-TRUCK1-LEVEL0)
+(LOADED-GOODS3-TRUCK1-LEVEL0)
+(LOADED-GOODS2-TRUCK1-LEVEL0)
+(LOADED-GOODS1-TRUCK1-LEVEL0)
+(STORED-GOODS4-LEVEL0)
+(STORED-GOODS3-LEVEL0)
+(STORED-GOODS2-LEVEL0)
+(STORED-GOODS1-LEVEL0)
+(READY-TO-LOAD-GOODS4-MARKET1-LEVEL0)
+(READY-TO-LOAD-GOODS3-MARKET1-LEVEL0)
+(READY-TO-LOAD-GOODS2-MARKET1-LEVEL0)
+(READY-TO-LOAD-GOODS1-MARKET1-LEVEL0)
+)
+(:goal
+(and
+(STORED-GOODS4-LEVEL1)
+(STORED-GOODS3-LEVEL1)
+(STORED-GOODS2-LEVEL1)
+(STORED-GOODS1-LEVEL1)
+)
+)
 )
